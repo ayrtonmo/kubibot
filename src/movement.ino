@@ -2,6 +2,7 @@
 #include <Servo.h>
 
 #define SOUND_SPEED 0.034 // Velocidad del sonido en cm/us
+#define MAX_DISTANCE 20 // Distancia maxima del sensor ultrasonico para detenerse
 
 /**
  * @brief Estructura para definir un motor
@@ -15,7 +16,7 @@ struct motor
 };
 
 /**
- * @brief Estructura para definir un sensor ultrasónico
+ * @brief Estructura para definir un sensor ultrasonico
  */
 struct ultraSonic
 {
@@ -102,14 +103,14 @@ void loop(){
 	// Medir distancia y avanzar o retroceder según la distancia medida
 	float distance = measure_distance(sonicSensor.echoPin, sonicSensor.trigPin);
 
-	if (distance < 20){
-		Serial.println("Avanzando");
+	if (distance < MAX_DISTANCE){
+		Serial.println("DETENIDO");
 		advance_motor(motorOne.motorIn1, motorOne.motorIn2, motorOne.motorEnable, 0);
 		advance_motor(motorTwo.motorIn1, motorTwo.motorIn2, motorTwo.motorEnable, 0);
 		delay(1000);
 	}
 	else{
-		Serial.println("Retrocediendo");
+		Serial.println("AVANZANDO");
 		advance_motor(motorOne.motorIn1, motorOne.motorIn2, motorOne.motorEnable, 255);
 		advance_motor(motorTwo.motorIn1, motorTwo.motorIn2, motorTwo.motorEnable, 255);
 		delay(1000);
