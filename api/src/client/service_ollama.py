@@ -3,7 +3,7 @@ import time
 
 # --- ⚠️ ¡IMPORTANTE! CONFIGURACIÓN ---
 # Asegúrate de poner la IP de tu PC (donde corre el servidor Flask)
-IP_SERVIDOR = "192.168.1.102"  # <-- CAMBIA ESTO POR LA IP DE TU PC
+IP_SERVIDOR = "192.168.1.84"  #
 PUERTO = "5000"
 URL_CHATEAR = f"http://{IP_SERVIDOR}:{PUERTO}/chatear"
 # ---------------------------------------
