@@ -1,0 +1,1 @@
+Módulo para la muestra de emociones en Kubibot
