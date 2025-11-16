@@ -15,9 +15,16 @@ PUERTO = "5000" # Puerto donde corre la API
 API_URL = f"http://{IP_SERVIDOR}:{PUERTO}/procesar_request"
 ACCES_KEY = os.getenv("ACCESS_KEY")
 WAKE_WORD = "porcupine"
-INDEX_MICROFONO = 5 # Utilizar indice del microfono correspondiente
+INDEX_MICROFONO = os.getenv("INDEX_MICFORONO")
 
-AUDIO_FILE_PATH = "../data/audio.wav"
+# Construir la ruta al directorio de datos de forma robusta
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(SCRIPT_DIR, '..', 'data')
+AUDIO_FILE_PATH = os.path.join(DATA_DIR, "audio.wav")
+
+# Crear el directorio de datos si no existe
+os.makedirs(DATA_DIR, exist_ok=True)
+# --- FIN DEL CAMBIO ---
 
 
 def enviar_audio_API(file_path):
@@ -89,7 +96,7 @@ def grabar_comando(audioPath, duracion_segundos = 7):
     waveFile = None
 
     try:
-        grabador = pvrecorder.PvRecorder(device_index=INDEX_MICROFONO)
+        grabador = pvrecorder.PvRecorder(device_index=INDEX_MICROFONO, frame_length = 512)
         waveFile = wave.open(audioPath, 'wb')
         waveFile.setnchannels(1)
         waveFile.setsampwidth(2)  # 16 bits
