@@ -1,3 +1,4 @@
 Archivo ejemplo para el .env
 ACCESS_KEY = "" Conseguir acceskey en Picovoice (string)
 INDEX_MICROFONO = Indice del dispositivo de entrada (int)
+IP_SERVER = "" IP del servidor usado por client.py (revisar con ip addres)

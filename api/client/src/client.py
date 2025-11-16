@@ -10,7 +10,7 @@ import struct
 load_dotenv()
 
 
-IP_SERVIDOR = "localhost"  # IP del servidor donde corre Ollama
+IP_SERVIDOR = os.getenv("IP_SERVER")
 PUERTO = "5000" # Puerto donde corre la API
 API_URL = f"http://{IP_SERVIDOR}:{PUERTO}/procesar_request"
 ACCES_KEY = os.getenv("ACCESS_KEY")
