@@ -41,7 +41,10 @@ public:
     void advance(int speed_one, int speed_two);
     void reverse(int speed_one, int speed_two);
     void stop();
+    void goLeft(int speed_one, int speed_two);
+    void goRight(int speed_one, int speed_two);
     float measure_distance();
+
 };
 
 ArduinoRobot::ArduinoRobot(motor m1, motor m2, ultraSonic us) : motor_one(m1), motor_two(m2), sonic_sensor(us)
@@ -87,6 +90,28 @@ void ArduinoRobot::reverse(int speed_one, int speed_two){
     analogWrite(motor_two.motorEnable, speed_two);
 }
 
+void ArduinoRobot::goLeft(int speed_one, int speed_two){
+    // Giro en el lugar: motor izquierdo atrás, motor derecho adelante
+    digitalWrite(motor_one.motorIn1, HIGH);
+    digitalWrite(motor_one.motorIn2, LOW);
+    analogWrite(motor_one.motorEnable, speed_one);
+
+    digitalWrite(motor_two.motorIn1, LOW);
+    digitalWrite(motor_two.motorIn2, HIGH);
+    analogWrite(motor_two.motorEnable, speed_two);
+}
+
+void ArduinoRobot::goRight(int speed_one, int speed_two){
+    // Giro en el lugar: motor izquierdo adelante, motor derecho atrás
+    digitalWrite(motor_one.motorIn1, LOW);
+    digitalWrite(motor_one.motorIn2, HIGH);
+    analogWrite(motor_one.motorEnable, speed_one);
+
+    digitalWrite(motor_two.motorIn1, HIGH);
+    digitalWrite(motor_two.motorIn2, LOW);
+    analogWrite(motor_two.motorEnable, speed_two);
+}
+
 void ArduinoRobot::stop(){
     analogWrite(motor_one.motorEnable, 0);
     analogWrite(motor_two.motorEnable, 0);
@@ -119,6 +144,11 @@ ultraSonic sonicSensor = {8, 9};
 // Creación del objeto robot
 ArduinoRobot robot(motorOne, motorTwo, sonicSensor);
 
+bool isChoosingPath = false;
+bool turnTimerStarted = false; // <-- nuevo
+unsigned long startTimer;
+unsigned long endTimer;
+
 
 void setup(){
     Serial.begin(9600);
@@ -126,20 +156,41 @@ void setup(){
 }
 
 void loop(){
-
     // Mide distancia y avanza o se detiene segun lo medido
     float distance = robot.measure_distance();
 
-    if (distance < MAX_DISTANCE){
-        Serial.println("Deteniendose");
-        robot.stop();
-        delay(1000);
+    if(!isChoosingPath){
+        if (distance < MAX_DISTANCE){
+            isChoosingPath = true;
+            turnTimerStarted = false; // reinicia para la maniobra
+        }
+        else{
+            Serial.println("Avanzando");
+            robot.advance(150, 255);
+        }
     }
-    else{
-        Serial.println("Avanzando");
-        // Se ponen estos valores para compensar velocidades de los motores
-        robot.advance(150, 255);
-        delay(1000);
+    else {
+        if(distance < MAX_DISTANCE){
+            // Aún cerca: sigue retrocediendo y no arranques el temporizador de giro
+            turnTimerStarted = false;
+            robot.reverse(255,150);
+        }
+        else {
+            // Zona despejada: inicia el temporizador del giro solo una vez
+            if(!turnTimerStarted){
+                startTimer = millis();
+                turnTimerStarted = true;
+            }
+            unsigned long timer = millis() - startTimer;
+            if(timer < 2000){
+                robot.goLeft(150,255);
+            }
+            else {
+                isChoosingPath = false;
+                Serial.println("Reanudando avance");
+                robot.advance(255, 255);
+            }
+        }
     }
-
+    delay(100); // más reactivo
 }
