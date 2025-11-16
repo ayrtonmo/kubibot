@@ -15,7 +15,7 @@ PUERTO = "5000" # Puerto donde corre la API
 API_URL = f"http://{IP_SERVIDOR}:{PUERTO}/procesar_request"
 ACCES_KEY = os.getenv("ACCESS_KEY")
 WAKE_WORD = "porcupine"
-INDEX_MICROFONO = os.getenv("INDEX_MICFORONO")
+INDEX_MICROFONO = int(os.getenv("INDEX_MICROFONO"))
 
 # Construir la ruta al directorio de datos de forma robusta
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
