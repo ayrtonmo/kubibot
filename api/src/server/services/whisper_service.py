@@ -12,11 +12,11 @@ def transcribir_archivo_audio(ruta_archivo):
     """
     print("Procesando audio con Whisper...")
     try:
-        # Usamos el archivo de audio guardado por la API
+        # Se utiliza el archivo de audio
         with sr.AudioFile(ruta_archivo) as source:
             audio_data = r.record(source)
 
-        # Realizamos la transcripción
+        # Se realiza la transcripcion con Whisper
         texto = r.recognize_whisper(audio_data, language="spanish", model="base")
 
         print(f"Whisper reconoció: {texto}")
@@ -29,3 +29,4 @@ def transcribir_archivo_audio(ruta_archivo):
     except Exception as e:
         print(f"Error en el servicio Whisper: {e}")
         raise e # Relanzamos la excepción
+

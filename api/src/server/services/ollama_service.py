@@ -4,12 +4,12 @@ import ollama
 def generar_respuesta_ollama(prompt):
     """
     Toma un prompt de texto, lo envía a Ollama y devuelve la respuesta.
-    Lanza una excepción si falla.
+    Lanza una excepcion si falla.
     """
     print(f"Enviando prompt a Ollama: {prompt}")
     try:
         respuesta_ollama = ollama.chat(
-            model='kubibot:latest',  # O el modelo que prefieras
+            model='kubibot:latest',
             messages=[
                 {'role': 'user', 'content': prompt}
             ]
