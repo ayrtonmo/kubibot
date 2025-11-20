@@ -13,6 +13,7 @@ load_dotenv()
 IP_SERVIDOR = os.getenv("IP_SERVER")
 PUERTO = "5000" # Puerto donde corre la API
 API_URL = f"http://{IP_SERVIDOR}:{PUERTO}/procesar_request"
+RESET_URL = f"http://{IP_SERVIDOR}:{PUERTO}/resetear_historial"
 ACCES_KEY = os.getenv("ACCESS_KEY")
 WAKE_WORD = "porcupine"
 INDEX_MICROFONO = int(os.getenv("INDEX_MICROFONO"))
@@ -119,7 +120,19 @@ def grabar_comando(audioPath, duracion_segundos = 7):
         if waveFile is not None:
             waveFile.close()
 
+def reiniciar_conversacion_servidor():
+    """
+    Envía una solicitud al servidor para reiniciar el historial de conversacion.
+    """
+    try:
+        response = requests.post(RESET_URL)
+        response.raise_for_status()
+        print("Historial de conversacion reiniciado en el servidor.")
+    except requests.exceptions.RequestException as e:
+        print(f"Error al reiniciar el historial en el servidor: {e}")
+
 if __name__ == "__main__":
+    reiniciar_conversacion_servidor()
     while(True):
         detectar_wake_word()
         grabar_comando(AUDIO_FILE_PATH)
