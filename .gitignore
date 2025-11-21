@@ -2,3 +2,5 @@
 .venv
 api/client/data/.
 .wav
+docs/*
+!docs/*.pdf
