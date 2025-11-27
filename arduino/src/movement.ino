@@ -4,6 +4,7 @@
 #define SOUND_SPEED 0.034 // Velocidad del sonido en cm/us
 #define MAX_DISTANCE 65
 
+enum RotationDirection {LEFT, RIGHT};
 
 /**
  * @brief Estructura para definir un motor
@@ -25,29 +26,43 @@ struct ultraSonic
     int trigPin; // Pin Trig del sensor
 };
 
+/**
+* @brief Estructura para definir el servomotor
+*/
+struct servoMotor
+{
+    Servo servo; // Objeto Servo para controlar el servomotor
+    int servoPin; // Pin del servomotor
+};
+
 
 class ArduinoRobot
 {
-private:
-    motor motor_one;
-    motor motor_two;
-    ultraSonic sonic_sensor;
+    private:
+        motor motor_one;
+        motor motor_two;
+        ultraSonic sonic_sensor;
+        servoMotor servo_motor;
 
-public:
-    ArduinoRobot(motor m1, motor m2, ultraSonic us);
-    ~ArduinoRobot();
+    public:
+        ArduinoRobot(motor m1, motor m2, ultraSonic us, servoMotor sm);
+        ~ArduinoRobot();
 
-    void init();
-    void advance(int speed_one, int speed_two);
-    void reverse(int speed_one, int speed_two);
-    void stop();
-    void goLeft(int speed_one, int speed_two);
-    void goRight(int speed_one, int speed_two);
-    float measure_distance();
+        void init();
+        void advance(int speed_one, int speed_two);
+        void reverse(int speed_one, int speed_two);
+        void stop();
+        void goLeft(int speed_one, int speed_two);
+        void goRight(int speed_one, int speed_two);
+        float measure_distance();
 
+        void setServoAngle(int angle);
+
+        RotationDirection chooseTurnDirection();
 };
 
-ArduinoRobot::ArduinoRobot(motor m1, motor m2, ultraSonic us) : motor_one(m1), motor_two(m2), sonic_sensor(us)
+
+ArduinoRobot::ArduinoRobot(motor m1, motor m2, ultraSonic us, servoMotor sm) : motor_one(m1), motor_two(m2), sonic_sensor(us), servo_motor(sm)
 {
 }
 
@@ -68,6 +83,10 @@ void ArduinoRobot::init(){
     // Sensor ultrasonico
     pinMode(sonic_sensor.echoPin, INPUT);
     pinMode(sonic_sensor.trigPin, OUTPUT);
+
+    // Servomotor
+    servo_motor.servo.attach(servo_motor.servoPin);
+    setServoAngle(90); // ✅ Corregido
 }
 
 void ArduinoRobot::advance(int speed_one, int speed_two){
@@ -134,6 +153,43 @@ float ArduinoRobot::measure_distance(){
     return distance;
 }
 
+void ArduinoRobot::setServoAngle(int angle){
+    servo_motor.servo.write(angle);
+}
+
+RotationDirection ArduinoRobot::chooseTurnDirection(){
+    float leftDistance, rightDistance;
+    
+    // Medir distancia a la izquierda (0°)
+    setServoAngle(0);
+    delay(500);
+    leftDistance = measure_distance();
+    
+    // Medir distancia a la derecha (180°)
+    setServoAngle(180);
+    delay(500);
+    rightDistance = measure_distance();
+    
+    // Volver al centro (90°)
+    setServoAngle(90);
+    delay(500);
+    
+    Serial.print("Izq: ");
+    Serial.print(leftDistance);
+    Serial.print(" cm | Der: ");
+    Serial.print(rightDistance);
+    Serial.println(" cm");
+    
+    if(leftDistance > rightDistance){
+        Serial.println("Elegido: IZQUIERDA");
+        return LEFT;
+    }
+    else {
+        Serial.println("Elegido: DERECHA");
+        return RIGHT;
+    }
+}
+
 
 // Declaracion de pines para componentes
 motor motorOne = {4, 3, 2};
@@ -141,14 +197,18 @@ motor motorTwo = {6, 7, 5};
 
 ultraSonic sonicSensor = {8, 9};
 
+servoMotor servoMotor = {Servo(), 10};
+
 // Creación del objeto robot
-ArduinoRobot robot(motorOne, motorTwo, sonicSensor);
+ArduinoRobot robot(motorOne, motorTwo, sonicSensor, servoMotor);
 
 bool isChoosingPath = false;
-bool turnTimerStarted = false; // <-- nuevo
-unsigned long startTimer;
-unsigned long endTimer;
+RotationDirection chosenDirection; // ✅ Guardar dirección elegida
+unsigned long reverseStartTime = 0;
+unsigned long turnStartTime = 0;
 
+enum State {ADVANCING, REVERSING, TURNING}; // ✅ Máquina de estados
+State currentState = ADVANCING;
 
 void setup(){
     Serial.begin(9600);
@@ -156,41 +216,49 @@ void setup(){
 }
 
 void loop(){
-    // Mide distancia y avanza o se detiene segun lo medido
     float distance = robot.measure_distance();
-
-    if(!isChoosingPath){
-        if (distance < MAX_DISTANCE){
-            isChoosingPath = true;
-            turnTimerStarted = false; // reinicia para la maniobra
-        }
-        else{
-            Serial.println("Avanzando");
-            robot.advance(150, 255);
-        }
-    }
-    else {
-        if(distance < MAX_DISTANCE){
-            // Aún cerca: sigue retrocediendo y no arranques el temporizador de giro
-            turnTimerStarted = false;
-            robot.reverse(255,150);
-        }
-        else {
-            // Zona despejada: inicia el temporizador del giro solo una vez
-            if(!turnTimerStarted){
-                startTimer = millis();
-                turnTimerStarted = true;
-            }
-            unsigned long timer = millis() - startTimer;
-            if(timer < 2000){
-                robot.goLeft(150,255);
+    
+    switch(currentState){
+        case ADVANCING:
+            if(distance < MAX_DISTANCE){
+                Serial.println("¡Obstáculo detectado!");
+                currentState = REVERSING;
+                reverseStartTime = millis();
+                robot.stop();
             }
             else {
-                isChoosingPath = false;
-                Serial.println("Reanudando avance");
-                robot.advance(255, 255);
+                robot.advance(200, 200);
             }
-        }
+            break;
+            
+        case REVERSING:
+            if(millis() - reverseStartTime < 1000){
+                robot.reverse(200, 200);
+            }
+            else {
+                robot.stop();
+                Serial.println("Analizando camino...");
+                chosenDirection = robot.chooseTurnDirection();
+                currentState = TURNING;
+                turnStartTime = millis();
+            }
+            break;
+            
+        case TURNING:
+            if(millis() - turnStartTime < 1500){ // Girar 1.5 segundos
+                if(chosenDirection == LEFT){
+                    robot.goLeft(200, 200);
+                }
+                else {
+                    robot.goRight(200, 200);
+                }
+            }
+            else {
+                Serial.println("Reanudando avance\n");
+                currentState = ADVANCING;
+            }
+            break;
     }
-    delay(100); // más reactivo
+    
+    delay(50);
 }
