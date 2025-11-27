@@ -197,7 +197,7 @@ motor motorTwo = {6, 7, 5};
 
 ultraSonic sonicSensor = {8, 9};
 
-servoMotor servoMotor = {Servo(), 10};
+servoMotor servoMotor = {Servo(), A5};
 
 // Creación del objeto robot
 ArduinoRobot robot(motorOne, motorTwo, sonicSensor, servoMotor);
