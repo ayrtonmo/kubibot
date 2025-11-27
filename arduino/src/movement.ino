@@ -203,11 +203,11 @@ servoMotor servoMotor = {Servo(), A5};
 ArduinoRobot robot(motorOne, motorTwo, sonicSensor, servoMotor);
 
 bool isChoosingPath = false;
-RotationDirection chosenDirection; // ✅ Guardar dirección elegida
+RotationDirection chosenDirection;
 unsigned long reverseStartTime = 0;
 unsigned long turnStartTime = 0;
 
-enum State {ADVANCING, REVERSING, TURNING}; // ✅ Máquina de estados
+enum State {ADVANCING, REVERSING, TURNING};
 State currentState = ADVANCING;
 
 void setup(){
