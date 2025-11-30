@@ -86,7 +86,7 @@ void ArduinoRobot::init(){
 
     // Servomotor
     servo_motor.servo.attach(servo_motor.servoPin);
-    setServoAngle(90); // ✅ Corregido
+    setServoAngle(90);
 }
 
 void ArduinoRobot::advance(int speed_one, int speed_two){
@@ -159,27 +159,27 @@ void ArduinoRobot::setServoAngle(int angle){
 
 RotationDirection ArduinoRobot::chooseTurnDirection(){
     float leftDistance, rightDistance;
-    
-    // Medir distancia a la izquierda (0°)
-    setServoAngle(0);
+
+    // Medir distancia a la izquierda (15°)
+    setServoAngle(15);
     delay(500);
     leftDistance = measure_distance();
-    
-    // Medir distancia a la derecha (180°)
-    setServoAngle(180);
+
+    // Medir distancia a la derecha (165°)
+    setServoAngle(165);
     delay(500);
     rightDistance = measure_distance();
-    
-    // Volver al centro (90°)
-    setServoAngle(90);
+
+    // Volver al centro (75°)
+    setServoAngle(75);
     delay(500);
-    
+
     Serial.print("Izq: ");
     Serial.print(leftDistance);
     Serial.print(" cm | Der: ");
     Serial.print(rightDistance);
     Serial.println(" cm");
-    
+
     if(leftDistance > rightDistance){
         Serial.println("Elegido: IZQUIERDA");
         return LEFT;
@@ -207,7 +207,7 @@ RotationDirection chosenDirection;
 unsigned long reverseStartTime = 0;
 unsigned long turnStartTime = 0;
 
-enum State {ADVANCING, REVERSING, TURNING};
+enum State {ADVANCING, REVERSING, TURNING, DETAINED};
 State currentState = ADVANCING;
 
 void setup(){
@@ -215,9 +215,13 @@ void setup(){
     robot.init();
 }
 
+
+
 void loop(){
+
+
     float distance = robot.measure_distance();
-    
+
     switch(currentState){
         case ADVANCING:
             if(distance < MAX_DISTANCE){
@@ -230,7 +234,7 @@ void loop(){
                 robot.advance(200, 200);
             }
             break;
-            
+
         case REVERSING:
             if(millis() - reverseStartTime < 1000){
                 robot.reverse(200, 200);
@@ -243,7 +247,7 @@ void loop(){
                 turnStartTime = millis();
             }
             break;
-            
+
         case TURNING:
             if(millis() - turnStartTime < 1500){ // Girar 1.5 segundos
                 if(chosenDirection == LEFT){
@@ -258,7 +262,11 @@ void loop(){
                 currentState = ADVANCING;
             }
             break;
+
+        case DETAINED:
+            robot.stop();
+            break;
     }
-    
+
     delay(50);
 }
