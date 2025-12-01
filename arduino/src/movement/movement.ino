@@ -3,6 +3,7 @@
 
 #define SOUND_SPEED 0.034 // Velocidad del sonido en cm/us
 #define MAX_DISTANCE 65
+#define VELOCITY 255
 
 enum RotationDirection {LEFT, RIGHT};
 
@@ -159,20 +160,19 @@ void ArduinoRobot::setServoAngle(int angle){
 
 RotationDirection ArduinoRobot::chooseTurnDirection(){
     float leftDistance, rightDistance;
-
-    // Medir distancia a la izquierda (15°)
-    setServoAngle(15);
-    delay(500);
+    float angleOff = 40; // Distancia de precaucion para servo
+    // Medir distancia a la izquierda (0 + angleOff°)
+    setServoAngle(angleOff);
     leftDistance = measure_distance();
+    delay(1000);
 
-    // Medir distancia a la derecha (165°)
-    setServoAngle(165);
-    delay(500);
+    // Medir distancia a la derecha (180 - angleOff°)
+    setServoAngle(180 - angleOff);
     rightDistance = measure_distance();
-
-    // Volver al centro (75°)
-    setServoAngle(75);
-    delay(500);
+    delay(1000);
+    // Volver al centro (90°)
+    setServoAngle(90);
+    delay(1000);
 
     Serial.print("Izq: ");
     Serial.print(leftDistance);
@@ -225,19 +225,19 @@ void loop(){
     switch(currentState){
         case ADVANCING:
             if(distance < MAX_DISTANCE){
-                Serial.println("¡Obstáculo detectado!");
+                Serial.println("obstaculo detectado a " + String(distance) + " cm, revirtiendo...");
                 currentState = REVERSING;
                 reverseStartTime = millis();
                 robot.stop();
             }
             else {
-                robot.advance(200, 200);
+                robot.advance(VELOCITY, VELOCITY);
             }
             break;
 
         case REVERSING:
-            if(millis() - reverseStartTime < 1000){
-                robot.reverse(200, 200);
+            if(distance < MAX_DISTANCE){
+                robot.reverse(VELOCITY, VELOCITY);
             }
             else {
                 robot.stop();
@@ -251,10 +251,10 @@ void loop(){
         case TURNING:
             if(millis() - turnStartTime < 1500){ // Girar 1.5 segundos
                 if(chosenDirection == LEFT){
-                    robot.goLeft(200, 200);
+                    robot.goLeft(VELOCITY, VELOCITY);
                 }
                 else {
-                    robot.goRight(200, 200);
+                    robot.goRight(VELOCITY, VELOCITY);
                 }
             }
             else {
@@ -268,5 +268,5 @@ void loop(){
             break;
     }
 
-    delay(50);
+    delay(100);
 }
