@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 
-from services.whisper_service import transcribir_archivo_audio
-from services.ollama_service import generar_respuesta_ollama, resetear_historial
+from services.whisper_service import transcribe_audioFile
+from services.ollama_service import ollama_generate_answer, reset_record
 
 
 app = Flask(__name__)
@@ -15,27 +15,27 @@ def procesar_request():
     if 'audio' not in request.files:
         return jsonify({"error": "No se envió ningún archivo de audio"}), 400
 
-    audio_file = request.files['audio']
-    temp_filename = "temp_audio.wav"
-    audio_file.save(temp_filename)
+    audioFile = request.files['audio']
+    tempFileName = "temp_audio.wav"
+    audioFile.save(tempFileName)
 
     try:
-        textoTranscrito = transcribir_archivo_audio(temp_filename)
-        textoRespuesta = generar_respuesta_ollama(textoTranscrito)
+        transcribedText = transcribe_audioFile(tempFileName)
+        outputText = ollama_generate_answer(transcribedText)
 
-        return jsonify({"respuesta": textoRespuesta})
+        return jsonify({"respuesta": outputText})
 
     except Exception as e:
         # 3. Si el servicio falla, captura el error
         return jsonify({"error": f"Error en transcripción: {str(e)}"}), 500
 
-@app.route("/resetear_historial", methods=["POST"])
-def resetear_historial_endpoint():
+@app.route("/reset_record", methods=["POST"])
+def reset_record_endpoint():
     """
     Endpoint para resetear el historial de conversación.
     """
     try:
-        resetear_historial()
+        reset_record()
         return jsonify({"mensaje": "Historial reseteado exitosamente."}), 200
     except Exception as e:
         return jsonify({"error": f"Error al resetear el historial: {str(e)}"}), 500

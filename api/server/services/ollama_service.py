@@ -1,41 +1,41 @@
 # servicios/servicio_ollama.py
 import ollama
 
-historialConversacion = []
+ollamaRecord = []
 
-def resetear_historial():
+def reset_record():
     """
     Resetea el historial de la conversación.
     """
-    global historialConversacion
-    historialConversacion = []
-    print("Historial de conversación reseteado.")
+    global ollamaRecord
+    ollamaRecord = []
+    #print("Historial de conversación reseteado.")
 
-def generar_respuesta_ollama(prompt):
+def ollama_generate_answer(prompt):
     """
-    Toma un prompt de texto, lo envía a Ollama y devuelve la respuesta.
+    Toma un prompt de texto, lo envia a Ollama y devuelve la respuesta.
     Lanza una excepcion si falla.
     """
-    historialConversacion.append({'role': 'user', 'content': prompt})
+    ollamaRecord.append({'role': 'user', 'content': prompt})
     print(f"Enviando prompt a Ollama: {prompt}")
     try:
         respuesta_ollama = ollama.chat(
             model='kubibot:latest',
-            messages=historialConversacion,
+            messages=ollamaRecord,
             options={
                 'num_predict': 70,
                 'temperature': 0.5
             }
             )
 
-        texto_respuesta = respuesta_ollama['message']['content']
+        generatedAnswer = respuesta_ollama['message']['content']
 
-        historialConversacion.append({'role': 'assistant', 'content': texto_respuesta})
+        ollamaRecord.append({'role': 'assistant', 'content': generatedAnswer})
 
-        print(f"Ollama respondió: {texto_respuesta}")
-        return texto_respuesta
+        #print(f"Ollama respondió: {generatedAnswer}")
+        return generatedAnswer
 
     except Exception as e:
         print(f"Error al contactar Ollama: {e}")
-        # Relanzamos la excepción para que la API la capture
+        # Se lanza la excepcion
         raise Exception(f"Error en el servicio Ollama: {str(e)}")
