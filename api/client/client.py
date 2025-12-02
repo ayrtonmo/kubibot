@@ -5,27 +5,63 @@ from dotenv import load_dotenv
 import os
 import wave
 import struct
-
+import subprocess
 
 load_dotenv()
 
-
 IP_SERVIDOR = os.getenv("IP_SERVER")
-PUERTO = "5000" # Puerto donde corre la API
+PUERTO = "5000"
 API_URL = f"http://{IP_SERVIDOR}:{PUERTO}/procesar_request"
 RESET_URL = f"http://{IP_SERVIDOR}:{PUERTO}/resetear_historial"
 ACCES_KEY = os.getenv("ACCESS_KEY")
 WAKE_WORD = "porcupine"
 INDEX_MICROFONO = int(os.getenv("INDEX_MICROFONO"))
 
-# Construir la ruta al directorio de datos de forma robusta
+PIPER_BINARY = "piper"
+
+VOICE_MODEL = os.path.expanduser("~/piper-voices/es_AR-daniela-high.onnx")
+TTS_OUTPUT_FILE = "respuesta_tts.wav"
+
+# Directorios
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(SCRIPT_DIR, '..', 'data')
 AUDIO_FILE_PATH = os.path.join(DATA_DIR, "audio.wav")
 
-# Crear el directorio de datos si no existe
 os.makedirs(DATA_DIR, exist_ok=True)
-# --- FIN DEL CAMBIO ---
+
+
+# --- NUEVO: FUNCIÓN PARA GENERAR Y REPRODUCIR AUDIO ---
+def texto_a_voz(texto):
+    """
+    Toma un texto, genera audio con Piper y lo reproduce con aplay.
+    """
+    if not texto:
+        return
+
+    print(f"Piper hablando: {texto}")
+
+    # Limpiamos el texto de comillas dobles para evitar errores en el comando bash
+    texto_seguro = texto.replace('"', '').replace("'", "")
+
+    # 1. Comando para generar el audio
+    # Estructura: echo "texto" | piper --model ruta_modelo --output_file archivo.wav
+    cmd_generar = f'echo "{texto_seguro}" | {PIPER_BINARY} --model "{VOICE_MODEL}" --output_file "{TTS_OUTPUT_FILE}"'
+
+    try:
+        # Generar el wav
+        subprocess.run(cmd_generar, shell=True, check=True, stderr=subprocess.DEVNULL)
+
+        # 2. Reproducir el audio (aplay)
+        subprocess.run(["aplay", TTS_OUTPUT_FILE], stderr=subprocess.DEVNULL)
+
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Error en TTS (Piper/Aplay): {e}")
+    except Exception as e:
+        print(f"❌ Error inesperado en TTS: {e}")
+    finally:
+        # Opcional: Borrar archivo temporal
+        if os.path.exists(TTS_OUTPUT_FILE):
+            os.remove(TTS_OUTPUT_FILE)
 
 
 def enviar_audio_API(file_path):
@@ -36,7 +72,6 @@ def enviar_audio_API(file_path):
     print(f"Enviando archivo de audio a la API: {file_path}")
     try:
         with open(file_path, 'rb') as audio_file:
-            # Es una buena práctica especificar el nombre del archivo y el tipo de contenido.
             files = {'audio': (file_path, audio_file, 'audio/wav')}
             response = requests.post(API_URL, files=files)
 
@@ -45,6 +80,25 @@ def enviar_audio_API(file_path):
             print("Archivo enviado, respuesta recibida:")
             respuesta_json = response.json()
             print(respuesta_json)
+            
+            # --- NUEVO: INTEGRACIÓN TTS ---
+            # Aquí asumimos que tu API devuelve un JSON. 
+            # Debemos buscar dónde está el texto. 
+            # Ejemplos comunes: {'response': 'Hola'}, {'text': 'Hola'}, {'message': 'Hola'}
+            
+            # Intenta obtener el texto de claves comunes, o usa el JSON entero como string si falla
+            texto_para_hablar = respuesta_json.get('response') or \
+                                respuesta_json.get('respuesta') or \
+                                respuesta_json.get('text') or \
+                                respuesta_json.get('mensaje')
+            
+            if texto_para_hablar:
+                texto_a_voz(texto_para_hablar)
+            else:
+                # Si no encuentra clave conocida, imprime aviso (o puedes hacer que lea el json crudo)
+                print("No se encontró una clave de texto estandar en el JSON para leer.")
+            # ------------------------------
+
             return respuesta_json
 
     except FileNotFoundError:
@@ -138,4 +192,3 @@ if __name__ == "__main__":
         grabar_comando(AUDIO_FILE_PATH)
         enviar_audio_API(AUDIO_FILE_PATH)
         print("Reiniciando escucha...\n")
-
