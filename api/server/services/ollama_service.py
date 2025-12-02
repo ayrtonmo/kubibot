@@ -8,9 +8,7 @@ def resetear_historial():
     Resetea el historial de la conversación.
     """
     global historialConversacion
-    historialConversacion = [
-        {'role': 'system', 'content': ''}
-    ]
+    historialConversacion = []
     print("Historial de conversación reseteado.")
 
 def generar_respuesta_ollama(prompt):
@@ -23,8 +21,12 @@ def generar_respuesta_ollama(prompt):
     try:
         respuesta_ollama = ollama.chat(
             model='kubibot:latest',
-            messages= historialConversacion
-        )
+            messages=historialConversacion,
+            options={
+                'num_predict': 70,
+                'temperature': 0.5
+            }
+            )
 
         texto_respuesta = respuesta_ollama['message']['content']
 
