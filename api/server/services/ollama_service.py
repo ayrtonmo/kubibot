@@ -22,7 +22,7 @@ def generar_respuesta_ollama(prompt):
     print(f"Enviando prompt a Ollama: {prompt}")
     try:
         respuesta_ollama = ollama.chat(
-            model='kubibot2.0:latest',
+            model='kubibot:latest',
             messages= historialConversacion
         )
 
