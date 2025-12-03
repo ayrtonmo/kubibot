@@ -33,7 +33,7 @@ AUDIO_FILE_PATH = os.path.join(DATA_DIR, "audio.wav")
 os.makedirs(DATA_DIR, exist_ok=True)
 
 
-# --- NUEVO: FUNCIÓN PARA GENERAR Y REPRODUCIR AUDIO ---
+# --- FUNCIÓN PARA GENERAR Y REPRODUCIR AUDIO ---
 def text_to_voice(text):
     """
     Toma un texto, genera audio con Piper y lo reproduce con aplay.
@@ -111,7 +111,8 @@ def send_audio_API(file_path):
 
 def detect_wake_word():
     """
-    Escucha el micrófono hasta detectar la wake word."""
+    Escucha el micrófono hasta detectar la wake word.
+    """
     try:
         porcupine = pvporcupine.create(
             access_key=ACCES_KEY,
@@ -143,7 +144,7 @@ def record_command(audioPath, duracion_segundos = 7):
     """
     Graba audio desde el micrófono y lo guarda en audioPath.
     """
-    #print("Grabando comando de voz...")
+    print("Grabando comando de voz...")
 
     recorder = None
     waveFile = None
@@ -156,12 +157,12 @@ def record_command(audioPath, duracion_segundos = 7):
         waveFile.setframerate(recorder.sample_rate)
 
         recorder.start()
-        #print("Grabando...")
+        print("Grabando...")
 
         for _ in range(int(recorder.sample_rate * duracion_segundos / recorder.frame_length)):
             frame = recorder.read()
             waveFile.writeframes(struct.pack("h" * len(frame), *frame))
-        #print("Grabación finalizada.")
+        print("Grabación finalizada.")
 
     except Exception as e:
         print(f"Error durante la grabación: {e}")
@@ -179,7 +180,7 @@ def reset_conversation():
     try:
         response = requests.post(RESET_URL)
         response.raise_for_status()
-        #print("Historial de conversacion reiniciado en el servidor.")
+        print("Historial de conversacion reiniciado en el servidor.")
     except requests.exceptions.RequestException as e:
         print(f"Error al reiniciar el historial en el servidor: {e}")
 
@@ -189,4 +190,4 @@ if __name__ == "__main__":
         detect_wake_word()
         record_command(AUDIO_FILE_PATH)
         send_audio_API(AUDIO_FILE_PATH)
-        #print("Reiniciando escucha...\n")
+        print("Reiniciando escucha...\n")
