@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 
-from services.whisper_service import transcribe_audioFile
+from services.whisper_service import transcribe_audio_file
 from services.ollama_service import ollama_generate_answer, reset_record
 
 
@@ -20,7 +20,7 @@ def procesar_request():
     audioFile.save(tempFileName)
 
     try:
-        transcribedText = transcribe_audioFile(tempFileName)
+        transcribedText = transcribe_audio_file(tempFileName)
         outputText = ollama_generate_answer(transcribedText)
 
         return jsonify({"respuesta": outputText})

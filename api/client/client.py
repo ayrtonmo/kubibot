@@ -10,10 +10,10 @@ import subprocess
 load_dotenv()
 
 # Configuracion API
-IP_SERVIDOR = os.getenv("IP_SERVER")
-PUERTO = "5000"
-API_URL = f"http://{IP_SERVIDOR}:{PUERTO}/procesar_request"
-RESET_URL = f"http://{IP_SERVIDOR}:{PUERTO}/resetear_historial"
+
+URL_SERVER = os.getenv("IP_SERVER")
+API_URL = f"https://{URL_SERVER}/procesar_request"
+RESET_URL = f"https://{URL_SERVER}/resetear_historial"
 
 # Configuracion Porcupine
 ACCES_KEY = os.getenv("ACCESS_KEY")
