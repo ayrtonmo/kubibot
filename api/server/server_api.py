@@ -9,8 +9,8 @@ print("Servidor API iniciado.")
 
 # Endpoint 1: Transcripcion de audio via whisper
 # Esta ruta solo se encarga de la web: recibir el archivo y devolver JSON
-@app.route("/procesar_request", methods=["POST"])
-def procesar_request():
+@app.route("/process_request", methods=["POST"])
+def process_request():
 
     if 'audio' not in request.files:
         return jsonify({"error": "No se envió ningún archivo de audio"}), 400
