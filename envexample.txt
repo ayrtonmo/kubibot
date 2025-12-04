@@ -1,3 +1,4 @@
 ACCESS_KEY = "" Conseguir acceskey en Picovoice (string)
 INDEX_MICROFONO = Indice del dispositivo de entrada (int)
-URL_SERVER = "" IP del servidor usado por client.py (revisar con ip addres)
+URL_SERVER = "" Aqui va la URL del servidor que se encargaria del procesamiento
+API_TOKEN = "" Aqui iria el token correspondiente

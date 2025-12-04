@@ -10,8 +10,8 @@ import subprocess
 load_dotenv()
 
 # Configuracion API
-
 URL_SERVER = os.getenv("URL_SERVER")
+API_TOKEN = os.getenv("API_TOKEN")
 API_URL = f"https://{URL_SERVER}/process_request"
 RESET_URL = f"https://{URL_SERVER}/reset_record"
 
@@ -75,7 +75,9 @@ def send_audio_API(file_path):
     try:
         with open(file_path, 'rb') as audio_file:
             files = {'audio': (file_path, audio_file, 'audio/wav')}
-            response = requests.post(API_URL, files=files)
+
+            headers = {'Auth': API_TOKEN}
+            response = requests.post(API_URL, files=files, headers=headers)
 
             response.raise_for_status()
 
@@ -178,7 +180,8 @@ def reset_conversation():
     Envía una solicitud al servidor para reiniciar el historial de conversacion.
     """
     try:
-        response = requests.post(RESET_URL)
+        headers = {'Auth': API_TOKEN}
+        response = requests.post(RESET_URL, headers=headers)
         response.raise_for_status()
         print("Historial de conversacion reiniciado en el servidor.")
     except requests.exceptions.RequestException as e:

@@ -1,16 +1,24 @@
 from flask import Flask, request, jsonify
-
+from dotenv import load_dotenv
+import os
 from services.whisper_service import transcribe_audio_file
 from services.ollama_service import ollama_generate_answer, reset_record
 
 
 app = Flask(__name__)
 print("Servidor API iniciado.")
+API_TOKEN = os.getenv("API_TOKEN")
+
+def validate_token(token):
+    return token == API_TOKEN
 
 # Endpoint 1: Transcripcion de audio via whisper
 # Esta ruta solo se encarga de la web: recibir el archivo y devolver JSON
 @app.route("/process_request", methods=["POST"])
 def process_request():
+
+    if validate_token(request.headers.get('Auth')) is False:
+        return jsonify({"error": "Token de autenticación inválido"}), 401
 
     if 'audio' not in request.files:
         return jsonify({"error": "No se envió ningún archivo de audio"}), 400
@@ -34,6 +42,10 @@ def reset_record_endpoint():
     """
     Endpoint para resetear el historial de conversación.
     """
+
+    if validate_token(request.headers.get('Auth')) is False:
+        return jsonify({"error": "Token de autenticación inválido"}), 401
+
     try:
         reset_record()
         return jsonify({"mensaje": "Historial reseteado exitosamente."}), 200
