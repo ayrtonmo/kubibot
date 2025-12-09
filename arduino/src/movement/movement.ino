@@ -3,7 +3,7 @@
 
 #define SOUND_SPEED 0.034 // Velocidad del sonido en cm/us
 #define MAX_DISTANCE 65
-#define VELOCITY 255
+#define VELOCITY 150
 
 enum RotationDirection {LEFT, RIGHT};
 
@@ -192,10 +192,10 @@ RotationDirection ArduinoRobot::chooseTurnDirection(){
 
 
 // Declaracion de pines para componentes
-motor motorOne = {4, 3, 2};
-motor motorTwo = {6, 7, 5};
+motor motorOne = {5, 4, 3}; // IZQUIERDA --> AI1, AI2, PWMA
+motor motorTwo = {7, 8, 6}; // DERECHA   --> BI1, BI2, PWMB
 
-ultraSonic sonicSensor = {8, 9};
+ultraSonic sonicSensor = {9, 10};
 
 servoMotor servoMotor = {Servo(), A5};
 
@@ -218,7 +218,6 @@ void setup(){
 
 
 void loop(){
-
 
     float distance = robot.measure_distance();
 
