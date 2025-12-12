@@ -18,8 +18,8 @@ AUDIO_TEMP_FILE = "stream_audio.wav"
 ACCES_KEY = os.getenv("ACCESS_KEY")
 INDEX_MICROFONO = int(os.getenv("INDEX_MICROFONO"))
 
-ARCHIVO_WAKE_WORD = "wakeword.ppn"
-MODEL_PATH = "porcupine_params_es.pv"
+ARCHIVO_WAKE_WORD = "config/wakeword.ppn"
+MODEL_PATH = "config/porcupine_params_es.pv"
 
 # Configuracion Voice Active Detection
 SILENCE_THRESHOLD = 500
