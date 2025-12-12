@@ -4,6 +4,11 @@ api/client/data/.
 .wav
 docs/*
 !docs/*.pdf
+!docs/*.tex
+!docs/Fig
+!docs/chapters
+!docs/bib
+!docs/frontmatter
 .pyc
 api/server/services/__pycache__/whisper_service.cpython-313.pyc
 api/server/services/__pycache__/ollama_service.cpython-313.pyc
