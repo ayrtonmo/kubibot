@@ -41,7 +41,7 @@ El movimiento durante el desarrollo del proyecto fue uno de los aspectos más de
 
 \vspace{0.5cm}
 
-Como se mencionó anteriormente, este fue programado con el ambiente de Arduino IDE, utilizando un Arduino UNO como microcontrolador principal. El código fue escrito en C++, utilizando librerías estándar para el control de motores y sensores ultrasónicos, y con un enfoque orientado a objeto. 
+Como se mencionó anteriormente, este fue programado con el ambiente de Arduino IDE, utilizando un Arduino UNO como microcontrolador principal. El código fue escrito en C++, utilizando librerías estándar de arduino y un enfoque orientado a objeto para el control de cada componente. 
 
 \subsection{Prototipo inicial}
 Inicialmente se planificó un sistema de locomoción basado en un chasis con dos ruedas a motor, dos ruedas libres y un sensor ultrasónico para la detección de obstáculos, controlados por un Arduino Uno. El puente H utilizado para controlar los motores fue el L293D, componente que se encontraba disponible en el laboratorio; continuación se presenta el diagrama de este en la figura
@@ -66,6 +66,12 @@ El sensor ultrasónico HC-SR04 se utilizó para medir la distancia a los obstác
     \label{fig:diag_hcsr04}
 \end{figure}
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Fig/Sensor_diagrama.png}
+    \caption{Conexión del sensor ultrasónico al Arduino}
+    \label{fig:sensor_diagrama}
+\end{figure}
 
 
 Los problemas comenzaron a surgir durante las primeras pruebas. El primer problema surgió con el sensor ultrasónico, ya que las lecturas eran inconsistentes y a menudo incorrectas. Después de reemplazar el sensor y revisar las conexiones, se descubrió que el problema en realidad estaba en el código de arduino, que no estaba manejando bien los tiempos de espera y las interrupciones. Tras corregir el código, el sensor comenzó a funcionar correctamente.
@@ -74,7 +80,6 @@ Los problemas comenzaron a surgir durante las primeras pruebas. El primer proble
 
 El siguiente problema fue netamente de diseño, ya que no se consideró adecuadamente el cómo el prototipo giraría al detectar un obstáculo. Ya que el chasis ya se encontraba impreso y era complicado modificarlo para añadir un mecanismo con un servo, se decidió realizar el giro netamente deteniendo un motor y dejando el otro activo.
 
-\newpage
 
 \subsection{Segundo prototipo}
 
@@ -97,6 +102,19 @@ De esta forma, se ejecutaría el siguiente flujo:
             Continuar moviendose hacia adelante.
 \end{lstlisting}
 
+\vspace{0.5cm}
+
+A continuación se presenta el diagrama de conexión del servomotor al arduino
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.3\linewidth]{Fig/Servo_diagrama.png}
+    \caption{Conexión del servomotor al Arduino}
+    \label{fig:servo_diagrama}
+\end{figure}
+
+\clearpage
+
 \subsection{Tercer prototipo}
 
     Al probar el giro y el movimiento se encontraron dos problemas graves:
@@ -112,18 +130,11 @@ De esta forma, se ejecutaría el siguiente flujo:
 
     Para solucionar el segundo problema se tuvo que hacer un cambio importante en el circuito, ya que para combatir la inercia y fricción con una potencia adecuada, se decidió añadir dos motores adicionales, así el sistema de locomoción convirtiéndose en uno 4x4. Esto implicó rediseñar el chasis para acomodar los nuevos motores y ruedas, lo que fue posible gracias a la impresión 3D.
 
-    También se tuvo que cambiar el puente H L293D por uno que soportara mayor corriente, ya que investigando se descubrió que con este habría riesgo de sobrecalentamiento si se utilizaban los 4 motores simultaneamente. El nuevo puente H utilizado fue el TB6612FNG, el cual además de soportar mayor corriente, se encontraba disponible en el laboratorio. A continuación se presenta el diagrama de este y la conexión de los motores
+    También se tuvo que cambiar el puente H L293D por uno que soportara mayor corriente, ya que investigando se descubrió que con este habría riesgo de sobrecalentamiento si se utilizaban los 4 motores simultaneamente. El nuevo puente H utilizado fue el TB6612FNG, el cual además de soportar mayor corriente, se encontraba disponible en el laboratorio. A continuación se presenta el diagrama de este
 
     \begin{figure}[h]
         \centering
-        \includegraphics[width=0.4\linewidth]{Fig/2dopuenteh_diagrama.jpg}
-        \caption{Puente H TB6612FNG}
-        \label{fig:diag_tb6612fng}
-    \end{figure}
-
-    \begin{figure}[h]
-        \centering
-        \includegraphics[width=0.7\linewidth]{Fig/Motores_diagrama.png}
+        \includegraphics[width=1\linewidth]{Fig/Motores_diagrama.png}
         \caption{Conexión de motores al TB6612FNG}
         \label{fig:diag_tb6612fng_motores}
         
@@ -131,7 +142,7 @@ De esta forma, se ejecutaría el siguiente flujo:
 
 \newpage
 
-\subsection{Cuarto prototipo}
+\subsection{Prototipo final}
 A pesar de la investigación realizada, el puente H TB6612FNG comenzó a sobrecalentarse al utilizar los 4 motores simultáneamente, lo que generó preocupación por la seguridad del prototipo. 
 
 Se tuvo que buscar una solución alternativa, y se optó por conseguir un \textit{shield} de motor para Arduino que fuese adecuado para el manejo de 4 motores DC. El \textit{shield} elegido fue el \textit{Motor Driver Shield L293D}, el cual contiene dos puentes H L293D (utilizado en el primer prototipo) integrados.
@@ -156,15 +167,17 @@ Sin embargo, al intentar utilizar diversos modelos, se descubrió que el Raspber
 
 \vspace{0.5cm}
 
-Después de una lluvia de ideas, se decidió cambiar la arquitectura del sistema para utilizar el Raspberry PI no como host del modelo del lenguaje, sino como un intermediario entre el usuario y un servidor externo que alojaría el modelo. De esta forma, el Raspberry PI se encargaría de manejar la entrada y salida de audio, mientras que el procesamiento intensivo requerido por el modelo de lenguaje se delegaría a una máquina más potente.
+Después de considerar diversas opciones, se decidió cambiar la arquitectura del sistema para utilizar el Raspberry PI no como host del modelo del lenguaje, sino como un intermediario entre el usuario y un servidor externo que alojaría el modelo. De esta forma, el Raspberry PI se encargaría de manejar la entrada y salida de audio, mientras que el procesamiento intensivo requerido por el modelo de lenguaje se delegaría a una máquina más potente.
 
-\subsection{Arquitectura del sistema}
+\newpage
+
+\subsection{Arquitectura final}
 El sistema de comunicación se diseñó adaptando una arquitectura cliente-servidor\footnote{Modelo de aplicación que distribuye las tareas entre los proveedores de recursos o servicios y solicitantes de servicios. \cite{ibm_clientserver}}. El Raspberry Pi actua como cliente, mientras que una maquina externa con mayor capacidad de procesamiento aloja el modelo de lenguaje y actua como servidor. Esta separación permite que el Raspberry Pi maneje las tareas de entrada y salida de audio, mientras que el servidor se encarga del procesamiento intensivo requerido por el modelo de lenguaje.
 
 
 En la figura \ref{fig:diag_com} se muestra un diagrama de funcionamiento entre los componentes principales del sistema de comunicación.
 
-\texttt{client.py} es el script principal que corre en el Raaspberry PI. Este se encarga de detectar constantemente si el usuario ha emitido una entrada de voz especifica o Wake Word (en este caso "Hey Bot"). Al detectar esta entrada, el script graba la voz del usuario durante un periodo de  tiempo y la envía al servidor a través de una solicitud HTTP POST. Esto se realiza utilizando la libreria \texttt{Porcupine}
+\texttt{client.py} es el script principal que corre en el Raaspberry PI. Este se encarga de detectar constantemente si el usuario ha emitido una entrada de voz especifica o Wake Word (en este caso "Hey Bot"). Al detectar esta entrada, el script graba la voz del usuario durante un periodo de  tiempo y la envía al servidor a través de una solicitud HTTP \texttt{POST}.
 
 \begin{figure}[H]
     \centering
