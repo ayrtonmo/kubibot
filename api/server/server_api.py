@@ -3,6 +3,8 @@ from flask_socketio import SocketIO, emit, disconnect
 from dotenv import load_dotenv
 import os
 import wave
+import uuid
+import subprocess
 from services.whisper_service import transcribe_audio_file
 from services.ollama_service import ollama_generate_answer, reset_record
 
@@ -14,11 +16,42 @@ API_TOKEN = os.getenv("API_TOKEN")
 
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
+# Configuracion TTS (Piper)
+PIPER_BINARY = "piper"
+VOICE_MODEL = os.path.expanduser("~/piper-voices/es_AR-daniela-high.onnx")
+TTS_OUTPUT_FILE = "respuesta_tts.wav"
+
 # Diccionario para almacenar buffers de audio por cliente
 clientBuffers = {}
 
 def validate_token(token):
     return token == API_TOKEN
+
+
+def generate_tts_response(text):
+
+    if not text:
+        return None
+
+    tempWav = f"tts_response_{uuid.uuid4().hex}.wav"
+    processedtext = text.replace('"', '').replace("'", "")
+
+    try:
+        cmd = f'echo "{processedtext}" | {PIPER_BINARY} --model {VOICE_MODEL} --output_file {tempWav}'
+        subprocess.run(cmd, shell=True, check=True, stderr = subprocess.DEVNULL)
+
+        if os.path.exists(tempWav):
+            with open(tempWav, 'rb') as f:
+                audioData = f.read()
+            return audioData
+
+    except Exception as e:
+        print(f"Error generando TTS: {e}")
+        return None
+
+    finally:
+        if os.path.exists(tempWav):
+            os.remove(tempWav)
 
 @socketio.on('connect')
 def handle_connect():
@@ -49,7 +82,6 @@ def handle_audio_chunk(data):
 def handle_end_of_audio():
 
     sesionId = request.sid
-
     uniqueBuffer = clientBuffers.get(sesionId)
     print("Audio recibido, procesando...")
 
@@ -69,6 +101,14 @@ def handle_end_of_audio():
         trasncribedText = transcribe_audio_file(tempFileName)
         responseText = ollama_generate_answer(trasncribedText)
         emit('response', {'respuesta': responseText})
+        audioData = generate_tts_response(responseText)
+
+        if audioData:
+            emit('audio_response', audioData)
+            print("Respuesta TTS enviada al cliente.")
+        else:
+            print("No se pudo generar la respuesta TTS.")
+
 
     except Exception as e:
         emit('response', {'error': f"Error en transcripción: {str(e)}"})
