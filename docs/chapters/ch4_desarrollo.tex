@@ -1,3 +1,4 @@
+
 \chapter{Desarrollo}
 
 \section{Análisis previo}
@@ -36,29 +37,126 @@ Esta nueva dirección se eligió por dos ventajas estratégicas:
 \newpage
 \section{Movimiento}
 
-Para el movimiento del robot se tomó como base un proyecto previo, el cual consistía en un auto a control remoto por bluetooth. Este contenía dos motores, 4 ruedas, un servo para las ruedas delanteras, un Arduino Uno para controlar los motores, baterías y un puente H L293D, componentes que fueron reutilizados en el presente prototipo.
+El movimiento durante el desarrollo del proyecto fue uno de los aspectos más desafiantes, no tanto por la complejidad técnica, sino por la limitación de recursos y problemas técnicos imprevistos que surgieron durante la implementación.
 
-\subsection{Movimiento hacia adelante y hacia atrás}
+\vspace{0.5cm}
 
-Para lograr realizar un sistema de ruedas y motores que se muevan hacía una dirección fija, se utilizaron los siguientes componentes
+Como se mencionó anteriormente, este fue programado con el ambiente de Arduino IDE, utilizando un Arduino UNO como microcontrolador principal. El código fue escrito en C++, utilizando librerías estándar para el control de motores y sensores ultrasónicos, y con un enfoque orientado a objeto. 
 
-\begin{itemize}
-    \item \textbf{Arduino Uno:} Microcontrolador encargado de la lógica, dando la señal de que si se debe avanzar hacia adelante o hacia atrás.
-    \item \textbf{Puente H L293D}: Chip que funciona como driver para motores. Su función es controlar la velocidad de los motores.
-    \item \textbf{2 Motores DC:} Estos motores son los encargados de hacer que las ruedas traseras giren, funcionando a comando del puente H.
-    \item \textbf{4 Ruedas}
-    \item \textbf{Protoboard y jumpers:}
-\end{itemize}
+\subsection{Prototipo inicial}
+Inicialmente se planificó un sistema de locomoción basado en un chasis con dos ruedas a motor, dos ruedas libres y un sensor ultrasónico para la detección de obstáculos, controlados por un Arduino Uno. El puente H utilizado para controlar los motores fue el L293D, componente que se encontraba disponible en el laboratorio; continuación se presenta el diagrama de este en la figura
 
-\subsection{Detección de obstáculos}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Fig/L293D_diagrama.png}
+    \caption{Puente H L293D}
+    \label{fig:diag_l293d}
+\end{figure}
+
+Los motores DC seleccionados fueron de 6V y 255 RPM, alimentados por una batería externa de 9V para asegurar un suministro de energía estable. 
+
+El sensor ultrasónico HC-SR04 se utilizó para medir la distancia a los obstáculos, enviando señales de ultrasonido y midiendo el tiempo que tarda en recibir el eco. Este sensor se conectó al Arduino, que procesaba las lecturas y cortaba el movimiento de los motores si se detectaba un obstáculo. A continuación se presenta el diagrama del sensor
+
+\newpage
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Fig/hc-sr04_diagrama.png}
+    \caption{Diagrama del sensor ultrasónico HC-SR04}
+    \label{fig:diag_hcsr04}
+\end{figure}
 
 
-\subsection{Movimiento autónomo}
+
+Los problemas comenzaron a surgir durante las primeras pruebas. El primer problema surgió con el sensor ultrasónico, ya que las lecturas eran inconsistentes y a menudo incorrectas. Después de reemplazar el sensor y revisar las conexiones, se descubrió que el problema en realidad estaba en el código de arduino, que no estaba manejando bien los tiempos de espera y las interrupciones. Tras corregir el código, el sensor comenzó a funcionar correctamente.
+
+\vspace{0.5cm}
+
+El siguiente problema fue netamente de diseño, ya que no se consideró adecuadamente el cómo el prototipo giraría al detectar un obstáculo. Ya que el chasis ya se encontraba impreso y era complicado modificarlo para añadir un mecanismo con un servo, se decidió realizar el giro netamente deteniendo un motor y dejando el otro activo.
+
+\newpage
+
+\subsection{Segundo prototipo}
+
+Algo que no se consideró en el primer prototipo fue la decisión de camino que el robot tomaría al detectar un obstáculo. Es por esto que se decidió implementar al sistema de detección de obstaculos un servomotor analógico conectado al arduino, al que se encontraría ensamblado el sensor ultrasónico.
+
+De esta forma, se ejecutaría el siguiente flujo:
+
+\vspace{0.5cm}
+
+\begin{lstlisting}
+    while(true):
+        if (distancia_obstaculo < umbral de seguridad):
+            1. Detener ambos motores.
+            2. Retroceder hasta una distancia segura.
+            3. Girar el servo a la izquierda y medir distancia.
+            4. Girar el servo a la derecha y medir distancia.
+            5. Comparar ambas distancias.
+            6. Girar en la direccion con mayor distancia libre.
+        else:
+            Continuar moviendose hacia adelante.
+\end{lstlisting}
+
+\subsection{Tercer prototipo}
+
+    Al probar el giro y el movimiento se encontraron dos problemas graves:
+    \begin{enumerate}
+        \item \textbf{Falta de potencia:} Se empezó a notar que el robot tenía dificultados para moverse, sobre todo en superficies con algo de fricción. Esto se debió a que la batería de 9V se estaba quedando sin carga, lo que resultaba en una potencia insuficiente.
+
+        \item \textbf{Giro ineficiente:} El sistema de giro implementado en donde se detenía un motor y se dejaba el otro activo no funcionó como se esperaba. El robot practicamente no giraba, tanto por la fricción del suelo como por la inercia ejercida por la rueda detenida.
+    \end{enumerate}
+
+    Para solucionar el primer problema se decidió cambiar la fuente de alimentación a un portapila de 6 pilas AA, entregando un total de 9V. Esto proporcionó no solo la potencia necesaria, sino que además la posibilidad de cambiar las pilas fácilmente cuando se agotaran.
+
+    \vspace{0.5cm}
+
+    Para solucionar el segundo problema se tuvo que hacer un cambio importante en el circuito, ya que para combatir la inercia y fricción con una potencia adecuada, se decidió añadir dos motores adicionales, así el sistema de locomoción convirtiéndose en uno 4x4. Esto implicó rediseñar el chasis para acomodar los nuevos motores y ruedas, lo que fue posible gracias a la impresión 3D.
+
+    También se tuvo que cambiar el puente H L293D por uno que soportara mayor corriente, ya que investigando se descubrió que con este habría riesgo de sobrecalentamiento si se utilizaban los 4 motores simultaneamente. El nuevo puente H utilizado fue el TB6612FNG, el cual además de soportar mayor corriente, se encontraba disponible en el laboratorio. A continuación se presenta el diagrama de este y la conexión de los motores
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.4\linewidth]{Fig/2dopuenteh_diagrama.jpg}
+        \caption{Puente H TB6612FNG}
+        \label{fig:diag_tb6612fng}
+    \end{figure}
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth]{Fig/Motores_diagrama.png}
+        \caption{Conexión de motores al TB6612FNG}
+        \label{fig:diag_tb6612fng_motores}
+        
+    \end{figure}
+
+\newpage
+
+\subsection{Cuarto prototipo}
+A pesar de la investigación realizada, el puente H TB6612FNG comenzó a sobrecalentarse al utilizar los 4 motores simultáneamente, lo que generó preocupación por la seguridad del prototipo. 
+
+Se tuvo que buscar una solución alternativa, y se optó por conseguir un \textit{shield} de motor para Arduino que fuese adecuado para el manejo de 4 motores DC. El \textit{shield} elegido fue el \textit{Motor Driver Shield L293D}, el cual contiene dos puentes H L293D (utilizado en el primer prototipo) integrados.
 
 \newpage
 
 \section{Comunicacion}
-Como se establecio previamente en el analisis del problema, se decidio utilizar un rsapberry PI como el nucleo del modulo de comunicacion. Este dispositivo se encargaría de recibir la entrada de audio del usuario, enviarla a un modelo de lenguaje alojado en un servidor externo, y luego reproducir la respuesta generada a través de un altavoz. Este flujo de trabajo suena simple, pero en la practica implico una serie de desafíos técnicos y decisiones de diseño que seran detallados en esta sección.
+Como se establecio previamente en el analisis del problema, se decidio utilizar un Raspberry PI como el núcleo del modulo de comunicación. 
+
+Este en un principio se pensó para alojar localmente un modelo de lenguaje, además de manejar la entrada y salida de audio y todo el postprocesamiento. Sin embargo, tras las primeras pruebas, varios problemas fueron encontrados y la arquitectura del sistema tuvo que ser replanteada.
+
+\vspace{0.5cm}
+
+Todo el código desarrollado para este módulo fue escrito en Python, ya que en este lenguaje existe una amplia gama de librerías y prototipos ya hechos para el manejo de IA, audio y comunicación en red, lo que facilita enormemente el desarrollo.
+
+\subsection{Arquitectura inicial}
+
+Para el modelo de lenguaje, se optó utilizar un LLM localmente alojado, debido tanto a la limitación de recursos económicos para utilizar una API comercial, como a la intención de explorar el uso de modelos de lenguaje abiertos. Se seleccionó la herramienta \textit{Ollama}, que permite realizar esto.
+
+Sin embargo, al intentar utilizar diversos modelos, se descubrió que el Raspberry PI 5 no contaba con la potencia suficiente para ejecutar ninguno de ellos de manera fluida. Incluso los modelos más livianos presentaban tiempos de respuesta inaceptables o provocaban que el sistema se congelara, lo que supuso un obstáculo significativo para el desarrollo del proyecto.
+
+
+\vspace{0.5cm}
+
+Después de una lluvia de ideas, se decidió cambiar la arquitectura del sistema para utilizar el Raspberry PI no como host del modelo del lenguaje, sino como un intermediario entre el usuario y un servidor externo que alojaría el modelo. De esta forma, el Raspberry PI se encargaría de manejar la entrada y salida de audio, mientras que el procesamiento intensivo requerido por el modelo de lenguaje se delegaría a una máquina más potente.
 
 \subsection{Arquitectura del sistema}
 El sistema de comunicación se diseñó adaptando una arquitectura cliente-servidor\footnote{Modelo de aplicación que distribuye las tareas entre los proveedores de recursos o servicios y solicitantes de servicios. \cite{ibm_clientserver}}. El Raspberry Pi actua como cliente, mientras que una maquina externa con mayor capacidad de procesamiento aloja el modelo de lenguaje y actua como servidor. Esta separación permite que el Raspberry Pi maneje las tareas de entrada y salida de audio, mientras que el servidor se encarga del procesamiento intensivo requerido por el modelo de lenguaje.
@@ -66,11 +164,11 @@ El sistema de comunicación se diseñó adaptando una arquitectura cliente-servi
 
 En la figura \ref{fig:diag_com} se muestra un diagrama de funcionamiento entre los componentes principales del sistema de comunicación.
 
-\texttt{client.py} es el script principal que corre en el Raaspberry PI. Este se encarga de detectar constantemente si el usuario ha emitido una entrada de voz especifica o Wake Word (en este caso "Hey Bot"). Al detectar esta entrada, el script graba la voz del usuario durante un periodo de  tiempo y la envía al servidor a través de una solicitud HTTP POST. Esto se realiza utilizando la libreria \texttt{Por}
+\texttt{client.py} es el script principal que corre en el Raaspberry PI. Este se encarga de detectar constantemente si el usuario ha emitido una entrada de voz especifica o Wake Word (en este caso "Hey Bot"). Al detectar esta entrada, el script graba la voz del usuario durante un periodo de  tiempo y la envía al servidor a través de una solicitud HTTP POST. Esto se realiza utilizando la libreria \texttt{Porcupine}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\linewidth]{Fig/diagrama_api.pdf}
+    \includegraphics[width=1\linewidth]{Fig/diagrama_api.pdf}
     \caption{Diagrama de comunicacion Servidor-Cliente}
     \label{fig:diag_com}
 \end{figure}
