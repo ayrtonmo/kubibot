@@ -1,0 +1,47 @@
+\documentclass[12pt,letterpaper,oneside]{report}
+\input{preamble}
+
+\begin{document}
+
+% --------------- Metadata (edit these) ----------------
+\newcommand{\tituloInforme}{KubiBot: Informe Técnico}
+\newcommand{\AuthorName}{Ivan Mansilla \\ Ayrton Morrison}
+\newcommand{\nombreCarrera}{Ingeniería Civil en Computación e Informática}
+\newcommand{\profesorRamo}{Mgt. Eduardo Peña}
+\newcommand{\nombreRamo}{Taller de Integración}
+\newcommand{\University}{Universidad de Magallanes \\ Facultad de Ingeniería \\ Departamento de Ingeniería en Computación e Informática}
+\newcommand{\GradYear}{2025}
+
+
+% ----- Front matter -----
+
+\input{frontmatter/titlepage}  % i (hidden)
+\cleardoublepage               % next page will be ii
+
+\pagenumbering{roman}
+\setcounter{page}{2}
+\cleardoublepage
+\input{frontmatter/abstract}
+\cleardoublepage
+\tableofcontents
+\cleardoublepage
+\listoffigures
+\cleardoublepage
+
+% -------------------- Main Matter ---------------------
+\pagenumbering{arabic}  % switch to 1, 2, 3...
+\setcounter{page}{1}
+
+\input{chapters/ch1_introduccion}
+\input{chapters/ch2_objetivos}
+\input{chapters/ch3_marco_teorico}
+\input{chapters/ch4_desarrollo}
+\input{chapters/ch5_conclusion}
+
+% -------------------- Appendices ----------------------
+
+
+% ------------------- Bibliography ---------------------
+\printbibliography
+
+\end{document}

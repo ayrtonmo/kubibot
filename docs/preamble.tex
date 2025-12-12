@@ -1,0 +1,51 @@
+% Fonts, layout, links
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[hidelinks]{hyperref}
+% \hypersetup{
+%   pdftitle={\ThesisTitle},
+%   pdfauthor={\AuthorName}
+% }
+
+% Figures, tables, math
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage{siunitx}
+\usepackage{float}
+
+% Chapter/section formatting
+\usepackage{titlesec}
+\titleformat{\chapter}[block]
+  {\normalfont\bfseries\Large\centering} % formato del título
+  {}{0pt}{\MakeUppercase} % etiqueta vacía: no muestra "CAPÍTULO N:"
+\titlespacing*{\chapter}{0pt}{-0.5em}{1.5em}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+% Number figures/tables by chapter
+\usepackage{chngcntr}
+\counterwithin{figure}{chapter}
+\counterwithin{table}{chapter}
+
+% Include LOF/LOT/References in ToC
+\usepackage[nottoc]{tocbibind}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes,calc,fit}
+\usepackage{csquotes}
+% Citation setup (edit style if needed)
+\usepackage[backend=biber,style=ieee,sorting=none,maxnames=6]{biblatex}
+\addbibresource{bib/references.bib}
+
+% Handy macros for consistent names
+\newcommand{\UnivLine}{\textbf{\University}}
