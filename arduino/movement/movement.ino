@@ -1,22 +1,12 @@
 #include <Arduino.h>
 #include <Servo.h>
+#include <AFMotor.h>  // Shield tipo V1 / HW130
 
-#define SOUND_SPEED 0.034 // Velocidad del sonido en cm/us
+#define SOUND_SPEED 0.034
 #define MAX_DISTANCE 65
 #define VELOCITY 150
 
 enum RotationDirection {LEFT, RIGHT};
-
-/**
- * @brief Estructura para definir un motor
- *
- */
-struct motor
-{
-    int motorIn1; // Input 1 del motor
-    int motorIn2; // Input 2 del motor
-    int motorEnable; // Input Enable del motor
-};
 
 /**
  * @brief Estructura para definir un sensor ultrasónico
@@ -40,101 +30,84 @@ struct servoMotor
 class ArduinoRobot
 {
     private:
-        motor motor_one;
-        motor motor_two;
-        ultraSonic sonic_sensor;
-        servoMotor servo_motor;
+        // Izquierda: M1 + M2 | Derecha: M3 + M4
+        AF_DCMotor motor_l1;
+        AF_DCMotor motor_l2;
+        AF_DCMotor motor_r1;
+        AF_DCMotor motor_r2;
+
+    ultraSonic sonic_sensor;
+    servoMotor servo_motor;
+
+    int clampSpeed(int s) { return constrain(s, 0, 255); }
+
+    void setLeft(int speed, uint8_t dir){
+        speed = clampSpeed(speed);
+        motor_l1.setSpeed(speed); motor_l2.setSpeed(speed);
+        motor_l1.run(dir);        motor_l2.run(dir);
+    }
+
+    void setRight(int speed, uint8_t dir){
+        speed = clampSpeed(speed);
+        motor_r1.setSpeed(speed); motor_r2.setSpeed(speed);
+        motor_r1.run(dir);        motor_r2.run(dir);
+    }
 
     public:
-        ArduinoRobot(motor m1, motor m2, ultraSonic us, servoMotor sm);
-        ~ArduinoRobot();
+        ArduinoRobot(ultraSonic us, servoMotor sm);
+    ~   ArduinoRobot();
 
-        void init();
-        void advance(int speed_one, int speed_two);
-        void reverse(int speed_one, int speed_two);
-        void stop();
-        void goLeft(int speed_one, int speed_two);
-        void goRight(int speed_one, int speed_two);
-        float measure_distance();
+    void init();
+    void advance(int speed_left, int speed_right);
+    void reverse(int speed_left, int speed_right);
+    void stop();
+    void goLeft(int speed_left, int speed_right);
+    void goRight(int speed_left, int speed_right);
+    float measure_distance();
 
-        void setServoAngle(int angle);
-
-        RotationDirection chooseTurnDirection();
+    void setServoAngle(int angle);
+    RotationDirection chooseTurnDirection();
 };
 
+ArduinoRobot::ArduinoRobot(ultraSonic us, servoMotor sm):
+    motor_l1(1), motor_l2(2), motor_r1(3), motor_r2(4),
+    sonic_sensor(us), servo_motor(sm) {}
 
-ArduinoRobot::ArduinoRobot(motor m1, motor m2, ultraSonic us, servoMotor sm) : motor_one(m1), motor_two(m2), sonic_sensor(us), servo_motor(sm)
-{
-}
-
-ArduinoRobot::~ArduinoRobot()
-{
-}
+ArduinoRobot::~ArduinoRobot() {}
 
 void ArduinoRobot::init(){
-    // Motores DC
-    pinMode(motor_one.motorIn1, OUTPUT);
-    pinMode(motor_one.motorIn2, OUTPUT);
-    pinMode(motor_one.motorEnable, OUTPUT);
+    stop();
 
-    pinMode(motor_two.motorIn1, OUTPUT);
-    pinMode(motor_two.motorIn2, OUTPUT);
-    pinMode(motor_two.motorEnable, OUTPUT);
-
-    // Sensor ultrasonico
     pinMode(sonic_sensor.echoPin, INPUT);
     pinMode(sonic_sensor.trigPin, OUTPUT);
 
-    // Servomotor
-    servo_motor.servo.attach(servo_motor.servoPin);
+    servo_motor.servo.attach(servo_motor.servoPin); // SERVO1 del shield V1 = D10
     setServoAngle(90);
 }
 
-void ArduinoRobot::advance(int speed_one, int speed_two){
-    digitalWrite(motor_one.motorIn1, LOW);
-    digitalWrite(motor_one.motorIn2, HIGH);
-    analogWrite(motor_one.motorEnable, speed_one);
-
-    digitalWrite(motor_two.motorIn1, LOW);
-    digitalWrite(motor_two.motorIn2, HIGH);
-    analogWrite(motor_two.motorEnable, speed_two);
+void ArduinoRobot::advance(int speed_left, int speed_right){
+    setLeft(speed_left, FORWARD);
+    setRight(speed_right, FORWARD);
 }
 
-void ArduinoRobot::reverse(int speed_one, int speed_two){
-    digitalWrite(motor_one.motorIn1, HIGH);
-    digitalWrite(motor_one.motorIn2, LOW);
-    analogWrite(motor_one.motorEnable, speed_one);
-
-    digitalWrite(motor_two.motorIn1, HIGH);
-    digitalWrite(motor_two.motorIn2, LOW);
-    analogWrite(motor_two.motorEnable, speed_two);
+void ArduinoRobot::reverse(int speed_left, int speed_right){
+    setLeft(speed_left, BACKWARD);
+    setRight(speed_right, BACKWARD);
 }
 
-void ArduinoRobot::goLeft(int speed_one, int speed_two){
-    // Giro en el lugar: motor izquierdo atrás, motor derecho adelante
-    digitalWrite(motor_one.motorIn1, HIGH);
-    digitalWrite(motor_one.motorIn2, LOW);
-    analogWrite(motor_one.motorEnable, speed_one);
-
-    digitalWrite(motor_two.motorIn1, LOW);
-    digitalWrite(motor_two.motorIn2, HIGH);
-    analogWrite(motor_two.motorEnable, speed_two);
+void ArduinoRobot::goLeft(int speed_left, int speed_right){
+    setLeft(speed_left, BACKWARD);
+    setRight(speed_right, FORWARD);
 }
 
-void ArduinoRobot::goRight(int speed_one, int speed_two){
-    // Giro en el lugar: motor izquierdo adelante, motor derecho atrás
-    digitalWrite(motor_one.motorIn1, LOW);
-    digitalWrite(motor_one.motorIn2, HIGH);
-    analogWrite(motor_one.motorEnable, speed_one);
-
-    digitalWrite(motor_two.motorIn1, HIGH);
-    digitalWrite(motor_two.motorIn2, LOW);
-    analogWrite(motor_two.motorEnable, speed_two);
+void ArduinoRobot::goRight(int speed_left, int speed_right){
+    setLeft(speed_left, FORWARD);
+    setRight(speed_right, BACKWARD);
 }
 
 void ArduinoRobot::stop(){
-    analogWrite(motor_one.motorEnable, 0);
-    analogWrite(motor_two.motorEnable, 0);
+    motor_l1.run(RELEASE); motor_l2.run(RELEASE);
+    motor_r1.run(RELEASE); motor_r2.run(RELEASE);
 }
 
 float ArduinoRobot::measure_distance(){
@@ -191,16 +164,14 @@ RotationDirection ArduinoRobot::chooseTurnDirection(){
 }
 
 
-// Declaracion de pines para componentes
-motor motorOne = {5, 4, 3}; // IZQUIERDA --> AI1, AI2, PWMA
-motor motorTwo = {7, 8, 6}; // DERECHA   --> BI1, BI2, PWMB
+// TRIG=A0, ECHO=A1  (ojo: tu struct es {echoPin, trigPin})
+ultraSonic sonicSensor = {A1, A0};
 
-ultraSonic sonicSensor = {9, 10};
+// SERVO1 del shield V1/HW130 = pin digital 10
+servoMotor servoMotor = {Servo(), 10};
 
-servoMotor servoMotor = {Servo(), A5};
-
-// Creación del objeto robot
-ArduinoRobot robot(motorOne, motorTwo, sonicSensor, servoMotor);
+// Robot con 4 motores (M1..M4)
+ArduinoRobot robot(sonicSensor, servoMotor);
 
 bool isChoosingPath = false;
 RotationDirection chosenDirection;
