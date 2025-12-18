@@ -20,10 +20,9 @@ Proyecto realizado para el curso de 'Taller de Integración I'.
 - [Requisitos](#requisitos)
 - [Instalación](#instalación)
 - [Modo de uso](#modo-de-uso)
-	- [Servidor (API en Raspberry Pi o PC)](#servidor-api-en-raspberry-pi-o-pc)
-	- [Cliente](#cliente)
+	- [Servidor de IA](#servidor-de-ia)
+	- [Cliente de voz (Raspberry Pi 5)](#cliente-de-voz-raspberry-pi-5)
 	- [Arduino (control de movimiento)](#arduino-control-de-movimiento)
-	- [Módulo de emociones](#módulo-de-emociones)
 - [Estructura del proyecto](#estructura-del-proyecto)
 - [Autores](#autores)
 
