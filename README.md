@@ -5,9 +5,9 @@
 ![Raspberry%20Pi](https://img.shields.io/badge/Raspberry%20Pi-5-C51A4A?logo=raspberrypi&logoColor=white)
 ![Flask-SocketIO](https://img.shields.io/badge/Flask--SocketIO-realtime-000000?logo=flask&logoColor=white)
 
-Sistema robótico que integra un robot móvil basado en Arduino con un servidor en Raspberry Pi 5 y módulos de IA.
+Sistema robótico que integra un robot móvil basado en Arduino con un servidor externo autoalojado, utilizando una Raspberry Pi 5 como intermediario de comunicación.
 
-El objetivo del proyecto es construir un robot de compañia demostrativo, que combine robótica y las posibilidades que trae la inteligencia artificial.
+El objetivo del proyecto es construir un robot de compañía demostrativo, que combine robótica y las posibilidades que trae la inteligencia artificial.
 
 Proyecto realizado para el curso de 'Taller de Integración I'.
 
@@ -30,14 +30,13 @@ Proyecto realizado para el curso de 'Taller de Integración I'.
 
 ## Descripción general
 
-Kubibot es un robot que puede desplazarse de forma autónoma evitando obstáculos, y escuchar y responder a través de voz al usuario a través de IA.
+Kubibot es un robot que puede desplazarse de forma autónoma evitando obstáculos, y puede escuchar y responder al usuario por voz mediante IA.
 
 El repositorio se divide en varios componentes:
 
-- **Arduino**: control de motores, sensores y lógica básica de navegación.
-- **API**: servidor y clientes para comunicar la Raspberry Pi/PC con el robot.
-- **Emotions**: módulo no incluido en el proyecto final, que tenía como objetivo la muestra de emociones del robot a través de una pantalla
-- **Docs**: memoria del proyecto en LaTeX.
+- **arduino**: control de motores, sensores y lógica básica de navegación.
+- **api**: servidor y clientes para comunicar la Raspberry Pi/PC con el robot.
+- **docs**: memoria del proyecto en LaTeX.
 
 ---
 
@@ -54,7 +53,7 @@ El repositorio se divide en varios componentes:
 	- Recibe audio por streaming desde el cliente (chunks de audio vía evento `audio_chunk`).
 	- Reconstruye el audio y lo transcribe a texto usando Whisper ([whisper_service.py](api/server/services/whisper_service.py)).
 	- Envía el texto transcrito al modelo de lenguaje local vía Ollama ([ollama_service.py](api/server/services/ollama_service.py)).
-	- Mantiene historial de conversación (contexto) entre turnos de diálogo.
+	- Mantiene el historial de conversación (contexto) entre turnos de diálogo.
 	- Convierte la respuesta de texto a audio mediante TTS con Piper y la devuelve al cliente (`audio_response`).
 
 - **Raspberry Pi 5 (cliente de voz)**
@@ -68,17 +67,20 @@ El repositorio se divide en varios componentes:
 
 ## Requisitos
 
+- Para las configuraciones que se utilizan de manera predeterminada, se recomienda un servidor con una CPU al nivel de una i7 de novena generación, que cuente con un mínimo de 16 GB de memoria RAM o con una tarjeta de video con, por lo menos, 6 GB de VRAM.
+- En [api/config/Modelfile](api/config/Modelfile) es posible configurar el modelo para escoger algún otro LLM que se ajuste a las necesidades específicas de cada usuario. Además, se pueden cambiar parámetros del comportamiento del asistente.
+
 ### Hardware
 
 - Arduino UNO
-    - 4 motores DC con ruedas
-    - Shield para motores para Arduino UNO (HW-130)
-    - Sensor ultrasónico (HC-SR04)
-    - Servomotor
-    - Fuente de alimentación adecuada
+	- 4 motores DC con ruedas
+	- Shield para motores para Arduino UNO (HW-130)
+	- Sensor ultrasónico (HC-SR04)
+	- Servomotor
+	- Fuente de alimentación adecuada
 - Raspberry Pi 5 (o PC con Linux/Windows para pruebas)
-    - Interfaz de audio compatible
-    - Altavoz y micrófono
+	- Interfaz de audio compatible
+	- Altavoz y micrófono
 - Servidor (PC o servidor dedicado)
 
 ### Software
@@ -130,7 +132,7 @@ El servidor se ejecuta en un PC o servidor dedicado y expone una API WebSocket c
 	python server_api.py
 	```
 
-Por defecto se expone en el puerto `5000` sobre `0.0.0.0`. En producción normalmente se coloca detrás de un *reverse proxy* HTTPS; en ese caso, configura el dominio en la variable `URL_SERVER` del cliente.
+Por defecto se expone en el puerto `5000` sobre `0.0.0.0`.
 
 ### Cliente de voz (Raspberry Pi 5)
 
