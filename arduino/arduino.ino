@@ -1,3 +1,9 @@
+/**
+ * @file arduino.ino
+ * @author Iván Mansilla, Ayrton Morrison
+ * @brief Código que maneja el movimiento autónomo y sistema de detección de obstáculos de Kubibot. Se utilizan 4 motores DC, un sensor ultrasónico y un servomotor.
+ * 
+ */
 #include <Arduino.h>
 #include <Servo.h>
 #include <AFMotor.h>
