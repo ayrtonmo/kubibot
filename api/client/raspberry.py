@@ -18,20 +18,22 @@ AUDIO_TEMP_FILE = "stream_audio.wav"
 ACCES_KEY = os.getenv("ACCESS_KEY")
 INDEX_MICROFONO = int(os.getenv("INDEX_MICROFONO"))
 
-ARCHIVO_WAKE_WORD = "config/wakeword.ppn"
-MODEL_PATH = "config/porcupine_params_es.pv"
+ARCHIVO_WAKE_WORD = "config/porcupine/wakeword.ppn"
+MODEL_PATH = "config/porcupine/porcupine_params_es.pv"
 
 # Configuracion Voice Active Detection
 SILENCE_THRESHOLD = 500
 SILENCE_LIMIT_SECONDS = 1.5
 MAX_DURATION_SECONDS = 20
 
+# Configuraciones generales
+START_SOUND_FILE = "config/sound/start_sound.wav"
+FINISH_SOUND_FILE = "config/sound/finish_sound.wav"
 
 # Configuracion SocketIO
 sio = socketio.Client(reconnection=True, reconnection_attempts=5, reconnection_delay=1, request_timeout=20)
 isBusy = False
 
-# Arh
 
 
 @sio.event
@@ -61,7 +63,7 @@ def audio_response(data):
     try:
         with open(AUDIO_TEMP_FILE, 'wb') as f:
             f.write(data)
-        
+
         subprocess.run(["aplay", AUDIO_TEMP_FILE], stderr=subprocess.DEVNULL)
 
     except Exception as e:
@@ -90,7 +92,7 @@ def record_and_stream(lengthSeconds = 7):
             frame = recorder.read()
             packedFrame = struct.pack("h" * len(frame), *frame)
             sio.emit('audio_chunk', packedFrame)
-
+        subprocess.run(["aplay", FINISH_SOUND_FILE], stderr=subprocess.DEVNULL)
         print("Grabación finalizada.")
         sio.emit('end_of_audio')
 
@@ -125,6 +127,7 @@ def detect_wake_word():
 
             if output >= 0:
                 print("Wake word detectada!")
+                subprocess.run(["aplay", START_SOUND_FILE], stderr=subprocess.DEVNULL)
                 break
     except KeyboardInterrupt:
         print("Interrumpido por el usuario")
