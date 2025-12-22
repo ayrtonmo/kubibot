@@ -130,7 +130,7 @@ A continuación se presenta el diagrama de conexión del servomotor al arduino
 
     Para solucionar el segundo problema se tuvo que hacer un cambio importante en el circuito, ya que para combatir la inercia y fricción con una potencia adecuada, se decidió añadir dos motores adicionales, así el sistema de locomoción convirtiéndose en uno 4x4. Esto implicó rediseñar el chasis para acomodar los nuevos motores y ruedas, lo que fue posible gracias a la impresión 3D.
 
-    También se tuvo que cambiar el puente H L293D por uno que soportara mayor corriente, ya que investigando se descubrió que con este habría riesgo de sobrecalentamiento si se utilizaban los 4 motores simultaneamente. El nuevo puente H utilizado fue el TB6612FNG, el cual además de soportar mayor corriente, se encontraba disponible en el laboratorio. A continuación se presenta el diagrama de este
+    También se tuvo que cambiar el puente H L293D por uno que soportara mayor corriente, ya que investigando se descubrió que con este habría riesgo de sobrecalentamiento si se utilizaban los 4 motores simultaneamente. El nuevo puente H utilizado fue el TB6612FNG, el cual además de soportar mayor corriente, se encontraba disponible en el laboratorio. A continuación se presenta el diagrama de conexión de este
 
     \begin{figure}[h]
         \centering
@@ -143,9 +143,13 @@ A continuación se presenta el diagrama de conexión del servomotor al arduino
 \newpage
 
 \subsection{Prototipo final}
-A pesar de la investigación realizada, el puente H TB6612FNG comenzó a sobrecalentarse al utilizar los 4 motores simultáneamente, lo que generó preocupación por la seguridad del prototipo. 
+A pesar de la investigación realizada, el puente H TB6612FNG comenzó a sobrecalentarse de todas formas al utilizar los 4 motores simultáneamente, lo que generó preocupación por la seguridad del prototipo. 
 
 Se tuvo que buscar una solución alternativa, y se optó por conseguir un \textit{shield} de motor para Arduino que fuese adecuado para el manejo de 4 motores DC. El \textit{shield} elegido fue el \textit{Motor Driver Shield L293D}, el cual contiene dos puentes H L293D (utilizado en el primer prototipo) integrados.
+
+Este \textit{shield} resultó en un gran avance y beneficio para el prototipo, ya que no solo resolvió el problema de sobrecalentamiento, sino que además simplificó enormemente el cableado y el suministro de energía del circuito.
+
+El shield se conecta directamente al Arduino, y cuenta con terminales tanto para los motores, como para el servo y el sensor ultrasónico, además cuanta con una entrada para una fuente de alimentación externa, que alimenta tanto a los motores como al Arduino y los demás componentes. Entonces, fue posible alimentar todo el sistema con una sola fuente de alimentación y remover uno de los portapilas, además de eliminar el protoboard utilizado para las conexiones, ganando espacio y quitando peso. A continuación se presenta el diagrama de conexión del shield:
 
 \newpage
 
@@ -187,5 +191,18 @@ En la figura \ref{fig:diag_com} se muestra un diagrama de funcionamiento entre l
 \end{figure}
 
 \section{Comunicación Raspberry-Arduino}
+La comunicación entre el Raspberry PI y el Arduino que se quería implementar consiste en enviar una señal desde el Raspberry PI al Arduino para activar o desactivar el movimiento del robot, dependiendo de si el robot está hablando o escuchando al usuario.
+
+\vspace{0.5cm}
+
+El principal obstáculo para lograr esto radica principalmente en la diferencia de voltajes entre ambos dispositivos. EL Raspberry PI opera a 3.3V en sus pines GPIO, mientras que el Arduino funciona a 5V. Esta diferencia puede causar daños permanentes en el Raspberry PI si se conecta directamente un pin de salida del Arduino a un pin de entrada del Raspberry. Para resolver esto se consideraron dos opciones principales:
+\begin{itemize}
+    \item \textbf{Circuito con relay:} Utilizar un relay para aislar eléctricamente ambos dispositivos. El Arduino podría activar el relay para enviar una señal al Raspberry PI sin que haya una conexión directa entre los pines de ambos dispositivos.
+    
+    \item \textbf{Cable USB}: Utilizar la comunicación serial a través de un cable USB. El Arduino puede enviar datos al Raspberry PI a través de la conexión USB, y el Raspberry PI puede interpretar estos datos para controlar el movimiento del robot.
+\end{itemize}
+
+
+
 
 \section{Diseño}
