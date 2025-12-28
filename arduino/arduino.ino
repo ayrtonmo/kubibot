@@ -49,6 +49,39 @@ struct servoMotor
 };
 
 /**
+ * @brief Clase para manejar la comunicación con Raspberry Pi
+ * 
+ */
+class RaspberryPi
+{
+    private:
+        bool stop; //!< Indica si el robot debe detenerse
+
+    public:
+        RaspberryPi(): stop(false) {}
+        ~RaspberryPi(){}
+
+        void setStop(bool s){
+            stop = s;
+        }
+        bool getStop(){
+            return stop;
+        }
+
+        void readStopCommand(){
+            if (Serial.available() > 0) {
+                int command = Serial.read();
+                if(command == 'S'){
+                    setStop(true);
+                }
+                else if(command == 'R'){
+                    setStop(false);
+                }
+            }
+        }
+};
+
+/**
  * @brief Clase para controlar el robot Arduino con motores DC, sensor ultrasónico y servomotor
  * 
  */
@@ -215,7 +248,8 @@ class ArduinoRobot
          * @param angle Ángulo en grados (0-180)
          */
         void setServoAngle(int angle){
-            servo_motor.servo.write(angle - SERVO_OFFSET);
+            int adjustedAngle = constrain(angle - SERVO_OFFSET, 0, 180);
+            servo_motor.servo.write(adjustedAngle);
         }
 
         /**
@@ -262,11 +296,12 @@ class ArduinoRobot
 ultraSonic sonicSensor = {SENSOR_ECHO_PIN, SENSOR_TRIG_PIN};
 servoMotor servoMotor = {Servo(), SERVO_PIN};
 ArduinoRobot robot(sonicSensor, servoMotor);
+RaspberryPi raspberryPi;
 
-bool isChoosingPath = false;
 RotationDirection chosenDirection;
-unsigned long reverseStartTime = 0;
 unsigned long turnStartTime = 0;
+
+float distance = 0.0;
 
 State currentState = ADVANCING;
 
@@ -284,14 +319,22 @@ void setup(){
  * 
  */
 void loop(){
-    float distance = robot.measure_distance();
+    raspberryPi.readStopCommand();
+    if(raspberryPi.getStop()){
+        currentState = DETAINED;
+    }
+    else if(currentState == DETAINED){
+        Serial.println("Reanudando operaciones...");
+        currentState = ADVANCING;
+    }
+
+    distance = robot.measure_distance();
 
     switch(currentState){
         case ADVANCING:
             if(distance < MAX_DISTANCE){
                 Serial.println("obstaculo detectado a " + String(distance) + " cm, revirtiendo...");
                 currentState = REVERSING;
-                reverseStartTime = millis();
                 robot.stop();
             }
             else {
