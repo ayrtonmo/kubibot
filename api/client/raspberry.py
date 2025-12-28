@@ -170,13 +170,13 @@ def detect_wake_word():
 
             if output >= 0:
                 print("Wake word detectada!")
-                subprocess.run(["aplay", START_SOUND_FILE], stderr=subprocess.DEVNULL)
-
                 # Se envia senhal de stop al arduino
                 if arduino is not None and arduino.is_open:
                     command = "S"
                     arduino.write(command.encode())
+                    print("Senhal de STOP enviada al Arduino.")
                     arduino.flush()
+                subprocess.run(["aplay", START_SOUND_FILE], stderr=subprocess.DEVNULL)
 
                 isOnUse = True
                 lastStopTime = datetime.datetime.now()
