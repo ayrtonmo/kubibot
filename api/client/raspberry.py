@@ -6,6 +6,8 @@ import os
 import struct
 import subprocess
 import time
+import serial
+import datetime
 
 load_dotenv()
 
@@ -34,16 +36,24 @@ FINISH_SOUND_FILE = "config/sound/finish_sound.wav"
 sio = socketio.Client(reconnection=True, reconnection_attempts=5, reconnection_delay=1, request_timeout=20)
 isBusy = False
 
+# Configuracion comunicacion serial
+PORT = '/dev/ttyACM0'
+FSERIAL = 9600  # Frecuencia serial arduino
+COOLDOWN = 60   # Segundos de cooldown para retornar la senhal de movimiento
+
+arduino = None
+isOnUse = False
+lastStopTime = None  # datetime del último "Stop" enviado
 
 
 @sio.event
-
 def connect():
     print("Conectado al servidor de la API")
 
 @sio.event
 def disconnect():
     print("Desconectado del servidor de la API")
+
 
 @sio.event
 def response(data):
@@ -52,6 +62,7 @@ def response(data):
         print(f"Respuesta de texto recibida: {texto}")
     if 'error'  in data:
         print(f"Error recibido del servidor: {data['error']}")
+
 
 @sio.event
 def audio_response(data):
@@ -77,8 +88,8 @@ def audio_response(data):
 def record_and_stream():
 
     global isBusy
-    isBusy = True
 
+    isBusy = True
     print("Grabando comando de voz...")
 
     recorder = None
@@ -129,7 +140,19 @@ def detect_wake_word():
     """
     Escucha el micrófono hasta detectar la wake word.
     """
+    global isOnUse, lastStopTime, arduino
+
     try:
+        if isOnUse and lastStopTime is not None:
+            elapsed = (datetime.datetime.now() - lastStopTime).total_seconds()
+            if elapsed >= COOLDOWN:
+                isOnUse = False
+                lastStopTime = None
+                if arduino is not None and arduino.is_open:
+                    command = "R"
+                    arduino.write(command.encode())
+                    arduino.flush()
+
         porcupine = pvporcupine.create(
             access_key=ACCES_KEY,
             keyword_paths=[ARCHIVO_WAKE_WORD],
@@ -148,19 +171,40 @@ def detect_wake_word():
             if output >= 0:
                 print("Wake word detectada!")
                 subprocess.run(["aplay", START_SOUND_FILE], stderr=subprocess.DEVNULL)
+
+                # Se envia senhal de stop al arduino
+                if arduino is not None and arduino.is_open:
+                    command = "S"
+                    arduino.write(command.encode())
+                    arduino.flush()
+
+                isOnUse = True
+                lastStopTime = datetime.datetime.now()
                 break
+
     except KeyboardInterrupt:
         print("Interrumpido por el usuario")
     finally:
-        if 'recorder' in locals():
+        if recorder:
             recorder.stop()
             recorder.delete()
-        if 'porcupine' in locals():
+        if porcupine:
             porcupine.delete()
+
+
+def stablish_serial_connection():
+    global arduino
+    try:
+        arduino = serial.Serial(PORT, FSERIAL)
+        time.sleep(2)  # Espera a que la conexión serial se establezca
+        print("Conexión serial establecida con Arduino.")
+    except Exception as e:
+        print(f"Error al establecer conexión serial: {e}")
 
 
 if __name__ == "__main__":
     try:
+        stablish_serial_connection()
         fullUrl = f"https://{URL_SERVER}"
         print(f"Conectando a la API... ")
 
@@ -169,7 +213,7 @@ if __name__ == "__main__":
 
         while True:
             detect_wake_word()
-            record_and_stream(lengthSeconds=7)
+            record_and_stream()
 
             # Espera hasta recibir la respuesta antes de continuar
             while isBusy:

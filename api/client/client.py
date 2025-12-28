@@ -7,7 +7,6 @@ import struct
 import subprocess
 import time
 
-import math
 
 load_dotenv()
 # Configuracion API
@@ -105,7 +104,7 @@ def record_and_stream():
             chunksRecorded += 1
 
             if voiceDetected and silenceCounter > silenceLimit:
-                print("Silencio detectado, finalizando grabación.")
+                print("Silencio detectado, finalizando grabacion.")
                 break
 
         subprocess.run(["aplay", FINISH_SOUND_FILE], stderr=subprocess.DEVNULL)
@@ -113,7 +112,7 @@ def record_and_stream():
         sio.emit('end_of_audio')
 
     except Exception as e:
-        print(f"Error durante la grabación: {e}")
+        print(f"Error durante la grabacion: {e}")
         isBusy = False
     finally:
         if recorder:
@@ -123,7 +122,7 @@ def record_and_stream():
 
 def detect_wake_word():
     """
-    Escucha el micrófono hasta detectar la wake word.
+    Escucha el microfono hasta detectar la wake word.
     """
     try:
         porcupine = pvporcupine.create(
@@ -164,7 +163,7 @@ if __name__ == "__main__":
 
         while True:
             detect_wake_word()
-            record_and_stream(lengthSeconds=7)
+            record_and_stream()
 
             # Espera hasta recibir la respuesta antes de continuar
             while isBusy:

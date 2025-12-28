@@ -2,7 +2,7 @@
  * @file arduino.ino
  * @author Iván Mansilla, Ayrton Morrison
  * @brief Código que maneja el movimiento autónomo y sistema de detección de obstáculos de Kubibot. Se utilizan 4 motores DC, un sensor ultrasónico y un servomotor.
- * 
+ *
  */
 #include <Arduino.h>
 #include <Servo.h>
@@ -20,7 +20,7 @@
 #define SERVO_OFFSET 20 //!< Offset para restar al ángulo del servomotor
 #define SERVO_SECURITY_OFFSET 40 //!< Offset de seguridad al girar el servomotor
 
-/** 
+/**
  * @brief Direcciones de rotación para el robot
  */
 enum RotationDirection {LEFT, RIGHT};
@@ -50,7 +50,7 @@ struct servoMotor
 
 /**
  * @brief Clase para manejar la comunicación con Raspberry Pi
- * 
+ *
  */
 class RaspberryPi
 {
@@ -67,7 +67,7 @@ class RaspberryPi
         bool getStop(){
             return stop;
         }
-
+        // S para detener, R para reanudar
         void readStopCommand(){
             if (Serial.available() > 0) {
                 int command = Serial.read();
@@ -83,7 +83,7 @@ class RaspberryPi
 
 /**
  * @brief Clase para controlar el robot Arduino con motores DC, sensor ultrasónico y servomotor
- * 
+ *
  */
 class ArduinoRobot
 {
@@ -98,7 +98,7 @@ class ArduinoRobot
 
         /**
          * @brief Limita la velocidad del motor al rango válido (0-255)
-         * 
+         *
          * @param s Velocidad a validar
          * @return int Velocidad limitada
          */
@@ -108,7 +108,7 @@ class ArduinoRobot
 
         /**
          * @brief Configura la velocidad y dirección de los motores izquierdos (M1 M2)
-         * 
+         *
          * @param speed Velocidad del motor (0-255)
          * @param dir Dirección del motor (FORWARD/BACKWARD/RELEASE)
          */
@@ -122,9 +122,9 @@ class ArduinoRobot
 
         /**
          * @brief Configura la velocidad y dirección de los motores derechos (M3 M4)
-         * 
-         * @param speed 
-         * @param dir 
+         *
+         * @param speed
+         * @param dir
          */
         void setRight(int speed, uint8_t dir){
             speed = clampSpeed(speed);
@@ -137,7 +137,7 @@ class ArduinoRobot
     public:
         /**
          * @brief Constructor del robot Arduino
-         * 
+         *
          * @param us Sensor ultrasónico
          * @param sm Servomotor
          */
@@ -147,13 +147,13 @@ class ArduinoRobot
 
         /**
          * @brief Destructor del robot Arduino
-         * 
+         *
          */
         ~ArduinoRobot(){}
 
         /**
          * @brief Inicializa los componentes del robot
-         * 
+         *
          */
         void init(){
             stop();
@@ -167,7 +167,7 @@ class ArduinoRobot
 
         /**
          * @brief Avanza hacia adelante el robot
-         * 
+         *
          * @param speed_left Velocidad de los motores izquierdos
          * @param speed_right Velocidad de los motores derechos
          */
@@ -178,9 +178,9 @@ class ArduinoRobot
 
         /**
          * @brief Avanza hacia atrás el robot
-         * 
-         * @param speed_left 
-         * @param speed_right 
+         *
+         * @param speed_left
+         * @param speed_right
          */
         void reverse(int speed_left, int speed_right){
             setLeft(speed_left, FORWARD);
@@ -189,7 +189,7 @@ class ArduinoRobot
 
         /**
          * @brief Detiene el movimiento del robot
-         * 
+         *
          */
         void stop(){
                 motor_l1.run(RELEASE);
@@ -200,7 +200,7 @@ class ArduinoRobot
 
         /**
          * @brief Gira el robot hacia la izquierda
-         * 
+         *
          * @param speed_left Velocidad de los motores izquierdos
          * @param speed_right Velocidad de los motores derechos
          */
@@ -211,7 +211,7 @@ class ArduinoRobot
 
         /**
          * @brief Gira el robot hacia la derecha
-         * 
+         *
          * @param speed_left Velocidad de los motores izquierdos
          * @param speed_right Velocidad de los motores derechos
          */
@@ -222,7 +222,7 @@ class ArduinoRobot
 
         /**
          * @brief Mide la distancia utilizando el sensor ultrasónico
-         * 
+         *
          * @return float Distancia medida en centímetros
          */
         float measure_distance(){
@@ -244,7 +244,7 @@ class ArduinoRobot
 
         /**
          * @brief Establece el ángulo del servomotor
-         * 
+         *
          * @param angle Ángulo en grados (0-180)
          */
         void setServoAngle(int angle){
@@ -254,7 +254,7 @@ class ArduinoRobot
 
         /**
          * @brief Escoge la dirección de giro basada en las mediciones del sensor ultrasónico
-         * 
+         *
          * @return RotationDirection Dirección de giro elegida (LEFT/RIGHT)
          */
         RotationDirection chooseTurnDirection(){
@@ -291,7 +291,7 @@ class ArduinoRobot
 
 /**
  * @brief Inicialización de variables globales
- * 
+ *
  */
 ultraSonic sonicSensor = {SENSOR_ECHO_PIN, SENSOR_TRIG_PIN};
 servoMotor servoMotor = {Servo(), SERVO_PIN};
@@ -307,7 +307,7 @@ State currentState = ADVANCING;
 
 /**
  * @brief Inicialización del arduino
- * 
+ *
  */
 void setup(){
     Serial.begin(9600);
@@ -316,7 +316,7 @@ void setup(){
 
 /**
  * @brief Loop principal de control del robot
- * 
+ *
  */
 void loop(){
     raspberryPi.readStopCommand();
