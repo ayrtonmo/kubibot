@@ -7,6 +7,8 @@ import struct
 import subprocess
 import time
 
+import math
+
 load_dotenv()
 # Configuracion API
 URL_SERVER = os.getenv("URL_SERVER")
@@ -19,9 +21,9 @@ WAKE_WORD = "porcupine"
 INDEX_MICROFONO = int(os.getenv("INDEX_MICROFONO"))
 
 # Configuracion Voice Active Detection
-SILENCE_THRESHOLD = 500
-SILENCE_LIMIT_SECONDS = 1.5
-MAX_DURATION_SECONDS = 20
+SILENCE_THRESHOLD = 2500
+SILENCE_LIMIT_SECONDS = 1.0
+MAX_DURATION_SECONDS = 15
 
 # Configuraciones generales
 START_SOUND_FILE = "config/sound/start_sound.wav"
@@ -69,7 +71,7 @@ def audio_response(data):
     isBusy = False
 
 
-def record_and_stream(lengthSeconds = 7):
+def record_and_stream():
 
     global isBusy
     isBusy = True
@@ -81,12 +83,31 @@ def record_and_stream(lengthSeconds = 7):
         recorder = pvrecorder.PvRecorder(device_index=INDEX_MICROFONO, frame_length = 512)
         recorder.start()
 
-        audioChunks = int(recorder.sample_rate * lengthSeconds / recorder.frame_length)
+        maxChunks = int(recorder.sample_rate * MAX_DURATION_SECONDS / recorder.frame_length)
+        silenceLimit = int(recorder.sample_rate * SILENCE_LIMIT_SECONDS / recorder.frame_length)
 
-        for _ in range(audioChunks):
+        silenceCounter = 0
+        chunksRecorded= 0
+        voiceDetected = False
+
+        while chunksRecorded < maxChunks:
             frame = recorder.read()
             packedFrame = struct.pack("h" * len(frame), *frame)
+
+            maxAmplitude = max(abs(sample) for sample in frame)
+            if maxAmplitude < SILENCE_THRESHOLD:
+                silenceCounter += 1 # Hay silencio
+            else:
+                silenceCounter = 0
+                voiceDetected = True # Detectada voz
+
             sio.emit('audio_chunk', packedFrame)
+            chunksRecorded += 1
+
+            if voiceDetected and silenceCounter > silenceLimit:
+                print("Silencio detectado, finalizando grabación.")
+                break
+
         subprocess.run(["aplay", FINISH_SOUND_FILE], stderr=subprocess.DEVNULL)
         print("Grabación finalizada.")
         sio.emit('end_of_audio')
