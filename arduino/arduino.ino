@@ -270,11 +270,11 @@ class ArduinoRobot
             // Medir distancia a la izquierda (0 + SERVO_SECURITY_OFFSET°)
             setServoAngle(SERVO_SECURITY_OFFSET);
             leftDistance = measure_distance();
-            delay(150);
+            delay(300);
             // Medir distancia a la derecha (180 - angleOff°)
             setServoAngle(180 - SERVO_SECURITY_OFFSET);
             rightDistance = measure_distance();
-            delay(150);
+            delay(350);
             // Volver al centro (90°)
             setServoAngle(90);
 
