@@ -143,16 +143,6 @@ def detect_wake_word():
     global isOnUse, lastStopTime, arduino
 
     try:
-        if isOnUse and lastStopTime is not None:
-            elapsed = (datetime.datetime.now() - lastStopTime).total_seconds()
-            if elapsed >= COOLDOWN:
-                isOnUse = False
-                lastStopTime = None
-                if arduino is not None and arduino.is_open:
-                    command = "R"
-                    arduino.write(command.encode())
-                    arduino.flush()
-
         porcupine = pvporcupine.create(
             access_key=ACCES_KEY,
             keyword_paths=[ARCHIVO_WAKE_WORD],
@@ -165,6 +155,18 @@ def detect_wake_word():
         print("Escuchando por la wake word...")
 
         while(True):
+            if isOnUse and lastStopTime is not None:
+                elapsed = (datetime.datetime.now() - lastStopTime).total_seconds()
+                if elapsed >= COOLDOWN:
+                    isOnUse = False
+                    lastStopTime = None
+                    if arduino is not None and arduino.is_open:
+                        print("Enviando senhal de reanudacion al Arduino.")
+                        command = "R"
+                        arduino.write(command.encode())
+                        arduino.flush()
+                else:
+                    print(f"En cooldown. Tiempo restante: {int(COOLDOWN - elapsed)} segundos")
             frame = recorder.read()
             output = porcupine.process(frame)
 
