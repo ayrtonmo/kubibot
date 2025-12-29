@@ -137,13 +137,12 @@ A continuación se presenta el diagrama de conexión del servomotor al arduino
         \includegraphics[width=1\linewidth]{Fig/Motores_diagrama.png}
         \caption{Conexión de motores al TB6612FNG}
         \label{fig:diag_tb6612fng_motores}
-        
     \end{figure}
 
 \newpage
 
 \subsection{Prototipo final}
-A pesar de la investigación realizada, el puente H TB6612FNG comenzó a sobrecalentarse de todas formas al utilizar los 4 motores simultáneamente, lo que generó preocupación por la seguridad del prototipo. 
+A pesar de la investigación realizada, el puente H TB6612FNG comenzó a sobrecalentarse de todas formas al utilizar los 4 motores simultáneamente, lo que generó preocupación por la seguridad del prototipo.
 
 Se tuvo que buscar una solución alternativa, y se optó por conseguir un \textit{shield} de motor para Arduino que fuese adecuado para el manejo de 4 motores DC. El \textit{shield} elegido fue el \textit{Motor Driver Shield L293D}, el cual contiene dos puentes H L293D (utilizado en el primer prototipo) integrados.
 
@@ -154,7 +153,7 @@ El shield se conecta directamente al Arduino, y cuenta con terminales tanto para
 \newpage
 
 \section{Comunicacion}
-Como se establecio previamente en el analisis del problema, se decidio utilizar un Raspberry PI como el núcleo del modulo de comunicación. 
+Como se establecio previamente en el analisis del problema, se decidio utilizar un Raspberry PI como el núcleo del modulo de comunicación.
 
 Este en un principio se pensó para alojar localmente un modelo de lenguaje, además de manejar la entrada y salida de audio y todo el postprocesamiento. Sin embargo, tras las primeras pruebas, varios problemas fueron encontrados y la arquitectura del sistema tuvo que ser replanteada.
 
@@ -175,7 +174,7 @@ Después de considerar diversas opciones, se decidió cambiar la arquitectura de
 
 \newpage
 
-\subsection{Arquitectura final}
+\subsection{Cambios Principales}
 El sistema de comunicación se diseñó adaptando una arquitectura cliente-servidor\footnote{Modelo de aplicación que distribuye las tareas entre los proveedores de recursos o servicios y solicitantes de servicios. \cite{ibm_clientserver}}. El Raspberry Pi actua como cliente, mientras que una maquina externa con mayor capacidad de procesamiento aloja el modelo de lenguaje y actua como servidor. Esta separación permite que el Raspberry Pi maneje las tareas de entrada y salida de audio, mientras que el servidor se encarga del procesamiento intensivo requerido por el modelo de lenguaje.
 
 
@@ -190,6 +189,9 @@ En la figura \ref{fig:diag_com} se muestra un diagrama de funcionamiento entre l
     \label{fig:diag_com}
 \end{figure}
 
+\subsection{Arquitectura Final}
+
+
 \section{Comunicación Raspberry-Arduino}
 La comunicación entre el Raspberry PI y el Arduino que se quería implementar consiste en enviar una señal desde el Raspberry PI al Arduino para activar o desactivar el movimiento del robot, dependiendo de si el robot está hablando o escuchando al usuario.
 
@@ -198,7 +200,7 @@ La comunicación entre el Raspberry PI y el Arduino que se quería implementar c
 El principal obstáculo para lograr esto radica principalmente en la diferencia de voltajes entre ambos dispositivos. EL Raspberry PI opera a 3.3V en sus pines GPIO, mientras que el Arduino funciona a 5V. Esta diferencia puede causar daños permanentes en el Raspberry PI si se conecta directamente un pin de salida del Arduino a un pin de entrada del Raspberry. Para resolver esto se consideraron dos opciones principales:
 \begin{itemize}
     \item \textbf{Circuito con relay:} Utilizar un relay para aislar eléctricamente ambos dispositivos. El Arduino podría activar el relay para enviar una señal al Raspberry PI sin que haya una conexión directa entre los pines de ambos dispositivos.
-    
+
     \item \textbf{Cable USB}: Utilizar la comunicación serial a través de un cable USB. El Arduino puede enviar datos al Raspberry PI a través de la conexión USB, y el Raspberry PI puede interpretar estos datos para controlar el movimiento del robot.
 \end{itemize}
 
