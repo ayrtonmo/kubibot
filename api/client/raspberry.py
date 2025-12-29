@@ -42,6 +42,8 @@ FSERIAL = 9600  # Frecuencia serial arduino
 COOLDOWN = 60   # Segundos de cooldown para retornar la senhal de movimiento
 STOP_COMMAND = 'S'
 RESUME_COMMAND = 'R'
+STOP_HANDSHAKE = 'K'
+HANDSHAKE_TIMEOUT = 1.5
 
 arduino = None
 isOnUse = False
@@ -190,11 +192,13 @@ def detect_wake_word():
             if output >= 0:
                 print("Wake word detectada!")
                 # Se envia senhal de stop al arduino
-                if arduino is not None and arduino.is_open:
-                    elapsedTime = 0
-                    arduino.write(STOP_COMMAND.encode())
-                    print("Senhal de STOP enviada al Arduino.")
-                    arduino.flush()
+
+                stopped = process_arduino_handshake()
+                if stopped:
+                    print("Senhal de STOP confirmada por el Arduino.")
+                else:
+                    print("No se recibio confirmacion de STOP del Arduino.")
+
                 subprocess.run(["aplay", START_SOUND_FILE], stderr=subprocess.DEVNULL)
 
                 isOnUse = True
@@ -210,11 +214,40 @@ def detect_wake_word():
         if porcupine is not None:
             porcupine.delete()
 
+def process_arduino_handshake():
+    global arduino
+
+    if arduino is None or not arduino.is_open:
+        return False
+
+    try:
+        arduino.reset_input_buffer()
+        arduino.write(STOP_COMMAND.encode())
+        arduino.flush()
+
+        startTime = time.time()
+        deadLine = startTime + HANDSHAKE_TIMEOUT
+        while time.time() < deadLine:
+            cooldown_tick()
+
+            b = arduino.read(1)
+            if not b:
+                continue
+            charRecieved = b.decode(errors='ignore')
+            if charRecieved == STOP_HANDSHAKE:
+                print("Handshake con Arduino exitoso.")
+                return True
+        print("Timeout esperando handshake del Arduino.")
+        return False
+
+    except Exception as e:
+        print(f"Error durante el handshake con Arduino: {e}")
+        return False
 
 def stablish_serial_connection():
     global arduino
     try:
-        arduino = serial.Serial(PORT, FSERIAL)
+        arduino = serial.Serial(PORT, FSERIAL, timeout=0.1, write_timeout=0.5)
         time.sleep(2)  # Espera a que la conexión serial se establezca
         arduino.write(RESUME_COMMAND.encode())
         arduino.flush()

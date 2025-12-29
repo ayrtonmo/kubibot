@@ -20,6 +20,11 @@
 #define SERVO_OFFSET 20 //!< Offset para restar al ángulo del servomotor
 #define SERVO_SECURITY_OFFSET 40 //!< Offset de seguridad al girar el servomotor
 
+#define STOP_SIGNAL 'S' //!< Senhal para detener el robot
+#define RESUME_SIGNAL 'R' //!< Senhal para reanudar el robot
+
+#define SERIAL_HANDSHAKE 'K' //!< Senhal de handshake serial
+
 /**
  * @brief Direcciones de rotación para el robot
  */
@@ -71,10 +76,10 @@ class RaspberryPi
         void readStopCommand(){
             if (Serial.available() > 0) {
                 int command = Serial.read();
-                if(command == 'S'){
+                if(command == STOP_SIGNAL){
                     setStop(true);
                 }
-                else if(command == 'R'){
+                else if(command == RESUME_SIGNAL){
                     setStop(false);
                 }
             }
@@ -233,6 +238,9 @@ class ArduinoRobot
             digitalWrite(sonic_sensor.trigPin, LOW);
 
             long duration = pulseIn(sonic_sensor.echoPin, HIGH);
+            if (duration == 0){
+                return 9999.0; // Objeto fuera de rango
+            }
             float distance = (duration * SOUND_SPEED) / 2;
 
             Serial.print("Distance: ");
@@ -262,15 +270,13 @@ class ArduinoRobot
             // Medir distancia a la izquierda (0 + SERVO_SECURITY_OFFSET°)
             setServoAngle(SERVO_SECURITY_OFFSET);
             leftDistance = measure_distance();
-            delay(1000);
-
+            delay(150);
             // Medir distancia a la derecha (180 - angleOff°)
             setServoAngle(180 - SERVO_SECURITY_OFFSET);
             rightDistance = measure_distance();
-            delay(1000);
+            delay(150);
             // Volver al centro (90°)
             setServoAngle(90);
-            delay(1000);
 
             Serial.print("Izq: ");
             Serial.print(leftDistance);
@@ -319,13 +325,28 @@ void setup(){
  *
  */
 void loop(){
+    static bool lastStopFlag = false;
+
     raspberryPi.readStopCommand();
-    if(raspberryPi.getStop()){
+    bool stopNow = raspberryPi.getStop();
+
+    if(stopNow && !lastStopFlag){
         currentState = DETAINED;
+        robot.stop();
+        Serial.write(SERIAL_HANDSHAKE);
     }
-    else if(currentState == DETAINED){
+    // Transición a RESUME (flanco)
+    else if(!stopNow && lastStopFlag && currentState == DETAINED){
         Serial.println("Reanudando operaciones...");
         currentState = ADVANCING;
+    }
+
+    lastStopFlag = stopNow;
+
+    // Si esta detenido por señal externa, no hacer nada
+    if(currentState == DETAINED){
+        delay(10);
+        return;
     }
 
     distance = robot.measure_distance();
@@ -374,6 +395,5 @@ void loop(){
             robot.stop();
             break;
     }
-
     delay(100);
 }
