@@ -60,30 +60,42 @@ struct servoMotor
 class RaspberryPi
 {
     private:
-        bool stop; //!< Indica si el robot debe detenerse
+    bool stop;              //!< Estado actual
+    bool stopPulse;         //!<  Estado de pulso para 'S'
+    bool resumePulse;       //!< Estado de pulso para 'R'
 
     public:
-        RaspberryPi(): stop(false) {}
-        ~RaspberryPi(){}
+    RaspberryPi(): stop(true), stopPulse(false), resumePulse(false) {} // parte detenido
+    ~RaspberryPi(){}
 
-        void setStop(bool s){
-            stop = s;
-        }
-        bool getStop(){
-            return stop;
-        }
-        // S para detener, R para reanudar
-        void readStopCommand(){
-            if (Serial.available() > 0) {
-                int command = Serial.read();
-                if(command == STOP_SIGNAL){
-                    setStop(true);
-                }
-                else if(command == RESUME_SIGNAL){
-                    setStop(false);
-                }
+    bool getStop() const { return stop; }
+
+    bool consumeStopPulse(){
+        if(!stopPulse) return false;
+        stopPulse = false;
+        return true;
+    }
+
+    bool consumeResumePulse(){
+        if(!resumePulse) return false;
+        resumePulse = false;
+        return true;
+    }
+
+    // S para detener, R para reanudar
+    void readStopCommand(){
+        while (Serial.available() > 0) {
+            int command = Serial.read();
+            if(command == STOP_SIGNAL){
+                stop = true;
+                stopPulse = true;
+            }
+            else if(command == RESUME_SIGNAL){
+                stop = false;
+                resumePulse = true;
             }
         }
+    }
 };
 
 /**
@@ -318,6 +330,7 @@ State currentState = ADVANCING;
 void setup(){
     Serial.begin(9600);
     robot.init();
+    currentState = DETAINED; // Se inicializa detenido
 }
 
 /**
@@ -328,23 +341,22 @@ void loop(){
     static bool lastStopFlag = false;
 
     raspberryPi.readStopCommand();
-    bool stopNow = raspberryPi.getStop();
 
-    if(stopNow && !lastStopFlag){
+    // Si llega stop, detiene
+    if(raspberryPi.consumeStopPulse()){
         currentState = DETAINED;
         robot.stop();
-        Serial.write(SERIAL_HANDSHAKE);
+        Serial.write(SERIAL_HANDSHAKE); // 'K'
     }
-    // Transición a RESUME (flanco)
-    else if(!stopNow && lastStopFlag && currentState == DETAINED){
+
+    // Si llega resume, arranca
+    if(raspberryPi.consumeResumePulse()){
         Serial.println("Reanudando operaciones...");
         currentState = ADVANCING;
     }
-
-    lastStopFlag = stopNow;
-
-    // Si esta detenido por señal externa, no hacer nada
-    if(currentState == DETAINED){
+    // Si esta detenido por senhal, no hace nada
+    if(currentState == DETAINED || raspberryPi.getStop()){
+        robot.stop();
         delay(10);
         return;
     }
