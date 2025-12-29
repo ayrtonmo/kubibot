@@ -18,7 +18,7 @@ AUDIO_TEMP_FILE = "stream_audio.wav"
 
 # Configuracion Porcupine
 ACCES_KEY = os.getenv("ACCESS_KEY")
-INDEX_MICROFONO = int(os.getenv("INDEX_MICROFONO"))
+INDEX_MICROFONO = os.getenv("INDEX_MICROFONO")
 
 ARCHIVO_WAKE_WORD = "config/porcupine/wakeword.ppn"
 MODEL_PATH = "config/porcupine/porcupine_params_es.pv"
@@ -40,10 +40,18 @@ isBusy = False
 PORT = '/dev/ttyACM0'
 FSERIAL = 9600  # Frecuencia serial arduino
 COOLDOWN = 60   # Segundos de cooldown para retornar la senhal de movimiento
+STOP_COMMAND = 'S'
+RESUME_COMMAND = 'R'
 
 arduino = None
 isOnUse = False
-lastStopTime = None  # datetime del último "Stop" enviado
+lastStopTime = None
+elapsedTime = 0
+
+# Configuracion Watchdogs
+CONNECT_RETRY_BASE_DELAY = 1 # Segundos entre reintentos de conexion
+CONNECT_RETRY_MAX_DELAY = 30 # Maximo delay entre reintentos de conexion
+RESPONSE_TIMEOUT_SECONDS = 30 # Segundos maximos de espera por respuesta de la API
 
 
 @sio.event
@@ -57,10 +65,12 @@ def disconnect():
 
 @sio.event
 def response(data):
+    global isBusy
     if 'respuesta_texto' in data:
         texto = data['respuesta_texto']
         print(f"Respuesta de texto recibida: {texto}")
     if 'error'  in data:
+        isBusy = False
         print(f"Error recibido del servidor: {data['error']}")
 
 
@@ -78,12 +88,24 @@ def audio_response(data):
         subprocess.run(["aplay", AUDIO_TEMP_FILE], stderr=subprocess.DEVNULL)
 
     except Exception as e:
+        isBusy = False
         print(f"Error al reproducir audio: {e}")
     finally:
         if os.path.exists(AUDIO_TEMP_FILE):
             os.remove(AUDIO_TEMP_FILE)
     isBusy = False
 
+def check_env_variables():
+    global INDEX_MICROFONO
+
+    required_vars = ["URL_SERVER", "API_TOKEN", "ACCESS_KEY", "INDEX_MICROFONO"]
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    if missing_vars:
+        raise EnvironmentError(f"Faltan las siguientes variables de entorno: {', '.join(missing_vars)}")
+    try:
+        INDEX_MICROFONO = int(os.getenv("INDEX_MICROFONO"))
+    except ValueError:
+        raise ValueError("INDEX_MICROFONO debe ser un entero válido.")
 
 def record_and_stream():
 
@@ -91,8 +113,8 @@ def record_and_stream():
 
     isBusy = True
     print("Grabando comando de voz...")
-
     recorder = None
+
     try:
         recorder = pvrecorder.PvRecorder(device_index=INDEX_MICROFONO, frame_length = 512)
         recorder.start()
@@ -105,6 +127,7 @@ def record_and_stream():
         voiceDetected = False
 
         while chunksRecorded < maxChunks:
+            cooldown_tick()
             frame = recorder.read()
             packedFrame = struct.pack("h" * len(frame), *frame)
 
@@ -140,7 +163,10 @@ def detect_wake_word():
     """
     Escucha el micrófono hasta detectar la wake word.
     """
-    global isOnUse, lastStopTime, arduino
+    global isOnUse, lastStopTime, arduino, elapsedTime
+
+    recorder = None
+    porcupine = None
 
     try:
         porcupine = pvporcupine.create(
@@ -155,18 +181,9 @@ def detect_wake_word():
         print("Escuchando por la wake word...")
 
         while(True):
-            if isOnUse and lastStopTime is not None:
-                elapsed = (datetime.datetime.now() - lastStopTime).total_seconds()
-                if elapsed >= COOLDOWN:
-                    isOnUse = False
-                    lastStopTime = None
-                    if arduino is not None and arduino.is_open:
-                        print("Enviando senhal de reanudacion al Arduino.")
-                        command = "R"
-                        arduino.write(command.encode())
-                        arduino.flush()
-                else:
-                    print(f"En cooldown. Tiempo restante: {int(COOLDOWN - elapsed)} segundos")
+
+            cooldown_tick()
+
             frame = recorder.read()
             output = porcupine.process(frame)
 
@@ -174,8 +191,8 @@ def detect_wake_word():
                 print("Wake word detectada!")
                 # Se envia senhal de stop al arduino
                 if arduino is not None and arduino.is_open:
-                    command = "S"
-                    arduino.write(command.encode())
+                    elapsedTime = 0
+                    arduino.write(STOP_COMMAND.encode())
                     print("Senhal de STOP enviada al Arduino.")
                     arduino.flush()
                 subprocess.run(["aplay", START_SOUND_FILE], stderr=subprocess.DEVNULL)
@@ -187,10 +204,10 @@ def detect_wake_word():
     except KeyboardInterrupt:
         print("Interrumpido por el usuario")
     finally:
-        if recorder:
+        if recorder is not None:
             recorder.stop()
             recorder.delete()
-        if porcupine:
+        if porcupine is not None:
             porcupine.delete()
 
 
@@ -199,26 +216,75 @@ def stablish_serial_connection():
     try:
         arduino = serial.Serial(PORT, FSERIAL)
         time.sleep(2)  # Espera a que la conexión serial se establezca
+        arduino.write(RESUME_COMMAND.encode())
+        arduino.flush()
         print("Conexión serial establecida con Arduino.")
     except Exception as e:
         print(f"Error al establecer conexión serial: {e}")
 
+def establish_server_conecction():
+    delay = CONNECT_RETRY_BASE_DELAY
+    while not sio.connected:
+        try:
+            print("Intentando conectar al servidor...")
+            fullUrl = f"https://{URL_SERVER}"
+            sio.connect(fullUrl, headers={'Auth': API_TOKEN})
+            sio.emit('reset_record')
+            print("Conexion Establecida.")
+        except Exception as e:
+            print(f"Error de reconexion: {e}")
+            time.sleep(delay)
+            delay = min(delay * 2, CONNECT_RETRY_MAX_DELAY)
+
+def cooldown_tick():
+    global isOnUse, lastStopTime, elapsedTime, arduino
+
+    if not isOnUse or lastStopTime is None:
+        return
+
+    elapsedTime = (datetime.datetime.now() - lastStopTime).total_seconds()
+    #print(f"Tiempo desde ultimo STOP: {int(elapsedTime)} segundos")
+
+    if elapsedTime < COOLDOWN:
+        return # Si todavia no ha pasado el cooldown, no hacer nada
+
+    isOnUse = False
+    lastStopTime = None
+    if arduino is not None and arduino.is_open:
+        print("Enviando senhal de reanudacion al Arduino.")
+        arduino.write(RESUME_COMMAND.encode())
+        arduino.flush()
 
 if __name__ == "__main__":
     try:
+        check_env_variables()
+        print("Iniciando cliente Raspberry Pi...")
         stablish_serial_connection()
-        fullUrl = f"https://{URL_SERVER}"
-        print(f"Conectando a la API... ")
-
-        sio.connect(fullUrl, headers={'Auth': API_TOKEN})
-        sio.emit('reset_record')
+        establish_server_conecction()
 
         while True:
+
+            if not sio.connected:
+                establish_server_conecction()
+
             detect_wake_word()
             record_and_stream()
 
             # Espera hasta recibir la respuesta antes de continuar
+            waitStart = time.time()
             while isBusy:
+                cooldown_tick()
+
+                if not sio.connected:
+                    print("Desconectado del servidor, intentando reconectar...")
+                    establish_server_conecction()
+                    isBusy = False
+                    break
+                if time.time() - waitStart > RESPONSE_TIMEOUT_SECONDS:
+                    print("Tiempo de espera de respuesta excedido.")
+                    isBusy = False
+                    break
+
                 time.sleep(0.1)
 
     except KeyboardInterrupt:
