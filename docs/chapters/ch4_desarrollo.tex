@@ -232,7 +232,7 @@ Después de considerar diversas opciones, se decidió cambiar la arquitectura de
 
 \newpage
 
-\subsection{Cambios Principales}
+\subsection{Arquitectura final}
 El sistema de comunicación se diseñó adaptando una arquitectura cliente-servidor\footnote{Modelo de aplicación que distribuye las tareas entre los proveedores de recursos o servicios y solicitantes de servicios. \cite{ibm_clientserver}}. El Raspberry Pi actua como cliente, mientras que una maquina externa con mayor capacidad de procesamiento aloja el modelo de lenguaje y actua como servidor. Esta separación permite que el Raspberry Pi maneje las tareas de entrada y salida de audio, mientras que el servidor se encarga del procesamiento intensivo requerido por el modelo de lenguaje.
 
 
