@@ -68,7 +68,7 @@ class Config:
         return f"https://{raw}"
 
     @classmethod
-    def from_env() -> 'Config':
+    def from_env(cls) -> 'Config':
         load_dotenv()
 
         requiredVars = ["URL_SERVER", "API_TOKEN", "ACCESS_KEY", "MICROPHONE_INDEX"]
@@ -82,7 +82,7 @@ class Config:
         except ValueError:
             raise ValueError("MICROPHONE_INDEX debe ser un entero válido.")
 
-        return Config(
+        return cls(
             url_server=os.getenv("URL_SERVER"),
             api_token=os.getenv("API_TOKEN"),
             access_key=os.getenv("ACCESS_KEY"),
