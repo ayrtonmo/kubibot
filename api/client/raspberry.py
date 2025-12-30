@@ -45,7 +45,7 @@ COOLDOWN = 60   # Segundos de cooldown para retornar la senhal de movimiento
 STOP_COMMAND = 'S'
 RESUME_COMMAND = 'R'
 STOP_HANDSHAKE = 'K'
-HANDSHAKE_TIMEOUT = 1.5
+HANDSHAKE_TIMEOUT = 3
 
 arduino = None
 isOnUse = False
@@ -246,7 +246,7 @@ def process_arduino_handshake():
         print(f"Error durante el handshake con Arduino: {e}")
         return False
 
-def stablish_serial_connection():
+def establish_serial_connection():
     global arduino
     try:
         arduino = serial.Serial(PORT, FSERIAL, timeout=0.1, write_timeout=0.5)
@@ -258,7 +258,7 @@ def stablish_serial_connection():
         subprocess.run(["aplay", ERROR_SOUND_FILE], stderr=subprocess.DEVNULL)
         print(f"Error al establecer conexión serial: {e}")
 
-def stablish_server_conecction():
+def establish_server_conecction():
     delay = CONNECT_RETRY_BASE_DELAY
     while not sio.connected:
         try:
@@ -297,13 +297,13 @@ if __name__ == "__main__":
     try:
         check_env_variables()
         print("Iniciando cliente Raspberry Pi...")
-        stablish_serial_connection()
-        stablish_server_conecction()
+        establish_serial_connection()
+        establish_server_conecction()
 
         while True:
 
             if not sio.connected:
-                stablish_server_conecction()
+                establish_server_conecction()
 
             detect_wake_word()
             record_and_stream()
