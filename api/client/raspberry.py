@@ -1,7 +1,6 @@
 import socketio
 import pvporcupine
 import pvrecorder
-from dotenv import load_dotenv
 import os
 import struct
 import subprocess
@@ -9,54 +8,56 @@ import time
 import serial
 import datetime
 
-load_dotenv()
+from api.client.config.config import Config
+
+# Cargar y validar configuración
+config = Config.from_env()
 
 # Configuracion API
-URL_SERVER = os.getenv("URL_SERVER")
-API_TOKEN = os.getenv("API_TOKEN")
-AUDIO_TEMP_FILE = "stream_audio.wav"
+URL_SERVER = config.server_url()
+API_TOKEN = config.api_token
+AUDIO_TEMP_FILE = config.audio_temp_file
 
 # Configuracion Porcupine
-ACCES_KEY = os.getenv("ACCESS_KEY")
-INDEX_MICROFONO = os.getenv("INDEX_MICROFONO")
+ACCES_KEY = config.access_key
+MICROPHONE_INDEX = config.microphone_index
 
-ARCHIVO_WAKE_WORD = "config/porcupine/wakeword.ppn"
-MODEL_PATH = "config/porcupine/porcupine_params_es.pv"
+ARCHIVO_WAKE_WORD = str(config.wake_word_path)
+MODEL_PATH = str(config.porcupine_model_path)
 
 # Configuracion Voice Active Detection
-SILENCE_THRESHOLD = 2500
-SILENCE_LIMIT_SECONDS = 1.0
-MAX_DURATION_SECONDS = 15
+SILENCE_THRESHOLD = config.silence_threshold
+SILENCE_LIMIT_SECONDS = config.silence_limit_seconds
+MAX_DURATION_SECONDS = config.max_duration_seconds
 
 # Configuraciones generales
-START_SOUND_FILE = "config/sound/start_sound.wav"
-FINISH_SOUND_FILE = "config/sound/finish_sound.wav"
-ON_SOUND_FILE = "config/sound/on_sound.wav"
-ERROR_SOUND_FILE = "config/sound/error_sound.wav"
+START_SOUND_FILE = str(config.start_sound_file)
+FINISH_SOUND_FILE = str(config.finish_sound_file)
+ON_SOUND_FILE = str(config.on_sound_file)
+ERROR_SOUND_FILE = str(config.error_sound_file)
 
 # Configuracion SocketIO
 sio = socketio.Client(reconnection=True, reconnection_attempts=5, reconnection_delay=1, request_timeout=20)
 isBusy = False
 
 # Configuracion comunicacion serial
-PORT = '/dev/ttyACM0'
-FSERIAL = 9600  # Frecuencia serial arduino
-COOLDOWN = 60   # Segundos de cooldown para retornar la senhal de movimiento
-STOP_COMMAND = 'S'
-RESUME_COMMAND = 'R'
-STOP_HANDSHAKE = 'K'
-HANDSHAKE_TIMEOUT = 3
+PORT = config.port
+FSERIAL = config.fserial  # Frecuencia serial arduino
+COOLDOWN = config.cooldown_seconds   # Segundos de cooldown para retornar la senhal de movimiento
+STOP_COMMAND = config.stop_command
+RESUME_COMMAND = config.resume_command
+STOP_HANDSHAKE = config.stop_handshake
+HANDSHAKE_TIMEOUT = config.handshake_timeout_seconds
+
+# Configuracion Watchdogs
+CONNECT_RETRY_BASE_DELAY = config.connect_retry_base_delay_seconds
+CONNECT_RETRY_MAX_DELAY = config.connect_retry_max_delay_seconds
+RESPONSE_TIMEOUT_SECONDS = config.response_timeout_seconds
 
 arduino = None
 isOnUse = False
 lastStopTime = None
 elapsedTime = 0
-
-# Configuracion Watchdogs
-CONNECT_RETRY_BASE_DELAY = 1 # Segundos entre reintentos de conexion
-CONNECT_RETRY_MAX_DELAY = 30 # Maximo delay entre reintentos de conexion
-RESPONSE_TIMEOUT_SECONDS = 30 # Segundos maximos de espera por respuesta de la API
-
 
 @sio.event
 def connect():
@@ -99,18 +100,6 @@ def audio_response(data):
             os.remove(AUDIO_TEMP_FILE)
     isBusy = False
 
-def check_env_variables():
-    global INDEX_MICROFONO
-
-    required_vars = ["URL_SERVER", "API_TOKEN", "ACCESS_KEY", "INDEX_MICROFONO"]
-    missing_vars = [var for var in required_vars if not os.getenv(var)]
-    if missing_vars:
-        raise EnvironmentError(f"Faltan las siguientes variables de entorno: {', '.join(missing_vars)}")
-    try:
-        INDEX_MICROFONO = int(os.getenv("INDEX_MICROFONO"))
-    except ValueError:
-        raise ValueError("INDEX_MICROFONO debe ser un entero válido.")
-
 def record_and_stream():
 
     global isBusy
@@ -120,7 +109,7 @@ def record_and_stream():
     recorder = None
 
     try:
-        recorder = pvrecorder.PvRecorder(device_index=INDEX_MICROFONO, frame_length = 512)
+        recorder = pvrecorder.PvRecorder(device_index=MICROPHONE_INDEX, frame_length = 512)
         recorder.start()
 
         maxChunks = int(recorder.sample_rate * MAX_DURATION_SECONDS / recorder.frame_length)
@@ -179,7 +168,7 @@ def detect_wake_word():
             model_path=MODEL_PATH
         )
 
-        recorder = pvrecorder.PvRecorder(device_index=INDEX_MICROFONO, frame_length=porcupine.frame_length)
+        recorder = pvrecorder.PvRecorder(device_index=MICROPHONE_INDEX, frame_length=porcupine.frame_length)
         recorder.start()
 
         print("Escuchando por la wake word...")
@@ -263,7 +252,7 @@ def establish_server_conecction():
     while not sio.connected:
         try:
             print("Intentando conectar al servidor...")
-            fullUrl = f"https://{URL_SERVER}"
+            fullUrl = URL_SERVER  # ya viene normalizada (http/https) desde Config.server_url
             sio.connect(fullUrl, headers={'Auth': API_TOKEN})
             sio.emit('reset_record')
             subprocess.run(["aplay", ON_SOUND_FILE], stderr=subprocess.DEVNULL)
@@ -295,7 +284,6 @@ def cooldown_tick():
 
 if __name__ == "__main__":
     try:
-        check_env_variables()
         print("Iniciando cliente Raspberry Pi...")
         establish_serial_connection()
         establish_server_conecction()
