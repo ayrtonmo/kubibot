@@ -14,7 +14,7 @@ from config.config import Config # Importar la clase Config desde el módulo con
 config = Config.from_env()
 
 # Configuracion API
-URL_SERVER = config.server_url()
+URL_SERVER = config.server_url
 API_TOKEN = config.api_token
 AUDIO_TEMP_FILE = config.audio_temp_file
 
