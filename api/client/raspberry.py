@@ -8,7 +8,7 @@ import time
 import serial
 import datetime
 
-from api.client.config.config import Config
+from config.config import Config # Importar la clase Config desde el módulo config
 
 # Cargar y validar configuración
 config = Config.from_env()
