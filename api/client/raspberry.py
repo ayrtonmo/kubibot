@@ -31,6 +31,8 @@ MAX_DURATION_SECONDS = 15
 # Configuraciones generales
 START_SOUND_FILE = "config/sound/start_sound.wav"
 FINISH_SOUND_FILE = "config/sound/finish_sound.wav"
+ON_SOUND_FILE = "config/sound/on_sound.wav"
+ERROR_SOUND_FILE = "config/sound/error_sound.wav"
 
 # Configuracion SocketIO
 sio = socketio.Client(reconnection=True, reconnection_attempts=5, reconnection_delay=1, request_timeout=20)
@@ -253,9 +255,10 @@ def stablish_serial_connection():
         arduino.flush()
         print("Conexión serial establecida con Arduino.")
     except Exception as e:
+        subprocess.run(["aplay", ERROR_SOUND_FILE], stderr=subprocess.DEVNULL)
         print(f"Error al establecer conexión serial: {e}")
 
-def establish_server_conecction():
+def stablish_server_conecction():
     delay = CONNECT_RETRY_BASE_DELAY
     while not sio.connected:
         try:
@@ -263,9 +266,11 @@ def establish_server_conecction():
             fullUrl = f"https://{URL_SERVER}"
             sio.connect(fullUrl, headers={'Auth': API_TOKEN})
             sio.emit('reset_record')
+            subprocess.run(["aplay", ON_SOUND_FILE], stderr=subprocess.DEVNULL)
             print("Conexion Establecida.")
         except Exception as e:
             print(f"Error de reconexion: {e}")
+            subprocess.run(["aplay", ERROR_SOUND_FILE], stderr=subprocess.DEVNULL)
             time.sleep(delay)
             delay = min(delay * 2, CONNECT_RETRY_MAX_DELAY)
 
@@ -293,12 +298,12 @@ if __name__ == "__main__":
         check_env_variables()
         print("Iniciando cliente Raspberry Pi...")
         stablish_serial_connection()
-        establish_server_conecction()
+        stablish_server_conecction()
 
         while True:
 
             if not sio.connected:
-                establish_server_conecction()
+                stablish_server_conecction()
 
             detect_wake_word()
             record_and_stream()
