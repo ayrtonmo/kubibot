@@ -1,0 +1,32 @@
+[Unit]
+Description=Controlador del Robot (Raspberry Pi Client)
+After=network-online.target sound.target
+Wants=network-online.target sound.target
+
+[Service]
+Type=simple
+User=kubibot
+Group=kubibot
+
+# Audio y puerto usb
+SupplementaryGroups=audio dialout
+
+WorkingDirectory=/home/kubibot/robot/kubibot/api/client
+
+ExecStart=/usr/bin/python3 /home/kubibot/robot/kubibot/api/client/raspberry.py
+
+Restart=on-failure
+RestartSec=5
+
+Environment=PYTHONUNBUFFERED=1
+
+
+EnvironmentFile=-/home/kubibot/robot/kubibot/.env
+
+
+KillSignal=SIGINT
+TimeoutStopSec=20
+
+
+[Install]
+WantedBy=multi-user.target

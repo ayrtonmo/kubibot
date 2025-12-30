@@ -143,7 +143,7 @@ En la Raspberry Pi se ejecuta el cliente que escucha la *wake word*, graba el au
 	- `URL_SERVER`: dominio o IP (y puerto si aplica) donde es accesible el servidor.
 	- `API_TOKEN`: debe coincidir con el del servidor.
 	- `ACCESS_KEY`: clave de Porcupine.
-	- `INDEX_MICROFONO`: índice del dispositivo de audio a utilizar.
+	- `MICROPHONE_INDEX`: índice del dispositivo de audio a utilizar.
 
 2. Desde la carpeta raíz del repositorio en la Raspberry Pi:
 
