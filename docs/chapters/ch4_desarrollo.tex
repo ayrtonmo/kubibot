@@ -232,7 +232,7 @@ Después de considerar diversas opciones, se decidió cambiar la arquitectura de
 
 \newpage
 
-\subsection{Arquitectura final}
+\subsection{Primer Prototipo funcional}
 El sistema de comunicación se diseñó adaptando una arquitectura cliente-servidor\footnote{Modelo de aplicación que distribuye las tareas entre los proveedores de recursos o servicios y solicitantes de servicios. \cite{ibm_clientserver}}. El Raspberry Pi actua como cliente, mientras que una maquina externa con mayor capacidad de procesamiento aloja el modelo de lenguaje y actua como servidor. Esta separación permite que el Raspberry Pi maneje las tareas de entrada y salida de audio, mientras que el servidor se encarga del procesamiento intensivo requerido por el modelo de lenguaje.
 
 
@@ -247,17 +247,28 @@ En la figura \ref{fig:diag_com} se muestra un diagrama de funcionamiento entre l
     \label{fig:diag_com}
 \end{figure}
 
-\subsection{Implementación del servidor de comunicación}
+\newpage
 
-El servidor se implementó utilizando \texttt{Flask} junto con \texttt{Flask-SocketIO}, permitiendo combinar una API web ligera con comunicación en tiempo real mediante WebSockets. El script principal \texttt{server\_api.py} define los eventos que gestionan la recepción y el envío de audio entre el cliente (Raspberry Pi) y el servidor.
+\subsection{Arquitectura final}
 
-Para la seguridad básica del sistema, cada cliente debe enviar un \textit{token} de autenticación en la cabecera \texttt{Auth}. El servidor valida este valor contra una variable de entorno (\texttt{API\_TOKEN}); si el token es incorrecto, la conexión se rechaza. En caso contrario, se crea un identificador de sesión y se inicializa un buffer de audio asociado a ese cliente.
 
-El flujo de funcionamiento es el siguiente: el cliente envía continuamente fragmentos de audio crudo a través del evento \texttt{audio\_chunk}. El servidor almacena estos fragmentos en memoria (en un \texttt{bytearray}) hasta que recibe el evento \texttt{end\_of\_audio}, que indica el final de la grabación. En ese momento, se vuelca el buffer a un archivo temporal en formato WAV (mono, 16 bits, 16 kHz), que luego es procesado por un servicio de transcripción basado en Whisper.
+Finalmente, el servidor se implementó utilizando\texttt{Flask}\cite{flask_doc} junto con \texttt{Flask-SocketIO}\cite{flask_socketio_doc}, permitiendo combinar una API web ligera con comunicación en tiempo real mediante WebSockets. El script principal \texttt{server\_api.py} define los eventos que gestionan la recepción y el envío de audio entre el cliente (Raspberry Pi) y el servidor. En adicion a lo anterior, el servidor permite manejar mas de un cliente en caso de que sea necesario.
 
-La función \texttt{transcribe\_audio\_file()} del módulo \texttt{whisper\_service} recibe la ruta del archivo y devuelve el texto transcrito. Este texto se pasa posteriormente al servicio de modelo de lenguaje, implementado en \texttt{ollama\_service}. Allí, la función \texttt{ollama\_generate\_answer()} envía el texto al modelo alojado en la máquina externa mediante la herramienta \textit{Ollama}, manteniendo además el contexto conversacional para generar respuestas coherentes a lo largo de la interacción. Cuando es necesario, la función \texttt{reset\_record()} permite reiniciar el historial de la conversación.
+Para la seguridad básica del sistema, cada cliente debe enviar un \textit{token} de autenticación en la cabecera \texttt{Auth}. El servidor valida este valor contra una variable de entorno, si el token es incorrecto, la conexión se rechaza. En caso contrario, se crea un identificador de sesión para el cliente conectado y se procede con el flujo de trabajo.
 
-Una vez obtenida la respuesta en texto, el servidor emite un evento \texttt{response} hacia el cliente y, en paralelo, genera una respuesta de audio utilizando el servicio de texto a voz implementado en \texttt{piper\_service}. La función \texttt{generate\_tts\_response()} convierte la respuesta de texto en un flujo de audio que se envía al cliente mediante el evento \texttt{audio\_response}. Con esto, el servidor queda encargado de toda la lógica pesada de IA: transcripción, generación de respuesta y síntesis de voz.
+El flujo de funcionamiento apreciado en al figura \ref{fig:diag_fin} es el siguiente: al recibir la \textbf{wake word}, el cliente comienza a grabar la voz del usuario, enviando fragmentos de audio al servidor mediante un evento especifico. Finalizada la grabacion se procesa el audio para obtener la transcripcion del mensaje mediante whisper. Posteriormente el texto resultante se procesa mediante Piper para obtener la respuesta en audio, la cual es enviada junto al texto al cliente para su reproduccion.
+
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Fig/diagrama_fin.pdf}
+    \caption{Diagrama de comunicacion Servidor-Cliente}
+    \label{fig:diag_fin}
+\end{figure}
+
+\newpage
+
 
 \subsection{Implementación del cliente en Raspberry Pi}
 

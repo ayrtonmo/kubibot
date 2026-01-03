@@ -10,7 +10,7 @@
 
 #define SOUND_SPEED 0.034 //!< Velocidad del sonido
 #define MAX_DISTANCE 65 //!< Distancia máxima para detectar obstáculos (cm)
-#define VELOCITY 150 //!< Velocidad de los motores (0-255)
+#define VELOCITY 255 //!< Velocidad de los motores (0-255)
 #define TURN_TIME 1500 //!< Tiempo de giro (ms)
 
 #define SENSOR_ECHO_PIN A1 //!< Pin ECHO del sensor ultrasónico
