@@ -65,20 +65,13 @@ El sensor ultrasónico HC-SR04 se utilizó para medir la distancia a los obstác
     \label{fig:diag_hcsr04}
 \end{figure}
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.7\linewidth]{Fig/Sensor_diagrama.png}
-    \caption{Conexión del sensor ultrasónico al Arduino}
-    \label{fig:sensor_diagrama}
-\end{figure}
-
-
 Los problemas comenzaron a surgir durante las primeras pruebas. El primer problema surgió con el sensor ultrasónico, ya que las lecturas eran inconsistentes y a menudo incorrectas. Después de reemplazar el sensor y revisar las conexiones, se descubrió que el problema en realidad estaba en el código de arduino, que no estaba manejando bien los tiempos de espera y las interrupciones. Tras corregir el código, el sensor comenzó a funcionar correctamente.
 
 \vspace{0.5cm}
 
 El siguiente problema fue netamente de diseño, ya que no se consideró adecuadamente el cómo el prototipo giraría al detectar un obstáculo. Ya que el chasis ya se encontraba impreso y era complicado modificarlo para añadir un mecanismo con un servo, se decidió realizar el giro netamente deteniendo un motor y dejando el otro activo.
 
+\newpage
 
 \subsection{Segundo prototipo}
 
@@ -88,7 +81,7 @@ De esta forma, se ejecutaría el siguiente flujo:
 
 \vspace{0.5cm}
 
-\begin{lstlisting}
+\begin{lstlisting}[style=pseudocodigo, caption={Flujo de detección de obstáculos con servo}]
     while(true):
         if (distancia_obstaculo < umbral de seguridad):
             1. Detener ambos motores.
@@ -102,17 +95,6 @@ De esta forma, se ejecutaría el siguiente flujo:
 \end{lstlisting}
 
 \vspace{0.5cm}
-
-A continuación se presenta el diagrama de conexión del servomotor al arduino
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.3\linewidth]{Fig/Servo_diagrama.png}
-    \caption{Conexión del servomotor al Arduino}
-    \label{fig:servo_diagrama}
-\end{figure}
-
-\clearpage
 
 \subsection{Tercer prototipo}
 
@@ -147,30 +129,50 @@ Se tuvo que buscar una solución alternativa, y se optó por conseguir un \texti
 
 Este \textit{shield} resultó en un gran avance y beneficio para el prototipo, ya que no solo resolvió el problema de sobrecalentamiento, sino que además simplificó enormemente el cableado y el suministro de energía del circuito.
 
+\vspace{0.5cm}
+
 El shield se conecta directamente al Arduino, y cuenta con terminales tanto para los motores, como para el servo y el sensor ultrasónico, además cuanta con una entrada para una fuente de alimentación externa, que alimenta tanto a los motores como al Arduino y los demás componentes. Entonces, fue posible alimentar todo el sistema con una sola fuente de alimentación y remover uno de los portapilas, además de eliminar el protoboard utilizado para las conexiones, ganando espacio y quitando peso. A continuación se presenta el diagrama de conexión del shield:
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\linewidth]{Fig/esquema_motor.pdf}
+    \caption{Conexiónes del motor driver shield L293D}
+    \label{fig:diag_shield}
+\end{figure}
 
 \subsection{Código}
 
-El código final se estructuró en torno a dos clases: \texttt{ArduinoRobot} y \texttt{RaspberryPi}. La primera se encarga de abstraer el control de los cuatro motores, el sensor ultrasónico y el servomotor; la segunda modela el estado de la comunicación con la Raspberry Pi mediante comandos seriales.
+El código final se estructuró en torno a dos clases: \texttt{ArduinoRobot} y \texttt{RaspberryPi}. La primera se encarga de abstraer el control de los cuatro motores, el sensor ultrasónico y el servomotor; la segunda modela el estado de la comunicación con la Raspberry Pi mediante comandos seriales, lo que se detallará más adelante.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Fig/diagrama_arduino.puml.pdf}
+    \caption{Diagrama de clases del módulo de movimiento}
+    \label{fig:diag_clases_mov}
+\end{figure}
+
 
 \vspace{0.5cm}
 
-En el caso del movimiento, cada par de motores (izquierdos y derechos) se controla utilizando la librería \texttt{AFMotor}. La clase \texttt{ArduinoRobot} implementa métodos como \texttt{advance()}, \texttt{reverse()}, \texttt{goLeft()} y \texttt{goRight()}, que internamente ajustan la velocidad y dirección de los motores mediante las funciones de la librería.
-
-El sensor ultrasónico HC-SR04 se gestiona mediante el método \texttt{measure\_distance()}, que genera un pulso (\textit{TRIG}), mide el tiempo de eco (\textit{ECHO}) mediante la función \texttt{pulseIn()} y calcula la distancia en centímetros utilizando la velocidad del sonido.
-
-El servomotor se controla con la librería estándar \texttt{Servo}. En el prototipo final, el sensor ultrasónico se monta sobre el servo, lo que permite rotarlo y tomar mediciones hacia la izquierda y la derecha. El método \texttt{setServoAngle()} aplica un desplazamiento (\textit{offset}) al ángulo para corregir la posición física del montaje y asegurar que el valor de $90^\circ$ corresponda aproximadamente a la posición frontal.
+Cada par de motores se controla utilizando la librería \texttt{AFMotor}. Se definieron métodos para avanzar, retroceder, girar y detener los motores, permitiendo un control sencillo del movimiento del robot. Se aprovechó la programación orientada a objetos para encapsular el control de cada motor, lo que facilitó la gestión del movimiento en conjunto.
 
 \vspace{0.5cm}
 
-La lógica de navegación se implementó con estados, \texttt{ADVANCING}, \texttt{REVERSING}, \texttt{TURNING} y \texttt{DETAINED}. En \texttt{ADVANCING}, el robot avanza recto mientras la distancia al obstáculo sea mayor que un umbral de seguridad. Si se detecta un obstáculo, se pasa a \texttt{REVERSING}, donde el robot retrocede durante un tiempo determinado hasta quedar a una distancia segura. Luego, en \texttt{TURNING}, el robot gira sobre su propio eje durante un tiempo fijo en la dirección elegida por el método \texttt{chooseTurnDirection()}, que compara las distancias medidas cuando el servo mira hacia la izquierda y hacia la derecha. El estado \texttt{DETAINED} se utiliza para detener completamente el robot cuando así lo indique la Raspberry Pi.
+El sensor ultrasónico HC-SR04 se gestiona mediante un \textit{struct} llamado \texttt{ultraSonic}, hijo de la clase \texttt{ArduinoRobot}, y el método \texttt{measure\_distance()}, que genera un pulso (\textit{TRIG}), mide el tiempo de eco (\textit{ECHO}) mediante la función \texttt{pulseIn()} y calcula la distancia en centímetros utilizando la velocidad del sonido.
+
+\vspace{0.5cm}
+
+El servomotor es representado a través del \textit{struct} \texttt{servoMotor}, y se controla con la librería estándar de Arduino \texttt{Servo}. El método \texttt{setServoAngle()} es el responsable de rotar el servo a un ángulo específico.
+
+\vspace{1cm}
+
+La lógica de navegación se implementó con estados, \texttt{ADVANCING}, \texttt{REVERSING}, \texttt{TURNING} y \texttt{DETAINED}. En \texttt{ADVANCING}, el robot avanza recto mientras la distancia al obstáculo sea mayor que un umbral de seguridad. Si se detecta un obstáculo, se pasa a \texttt{REVERSING}, donde el robot retrocede durante un tiempo determinado hasta quedar a una distancia segura. Luego, en \texttt{TURNING}, el robot gira sobre su propio eje durante un tiempo fijo en la dirección elegida por el método \texttt{chooseTurnDirection()}, que compara las distancias medidas cuando el servo mira hacia la izquierda y hacia la derecha y retorna \texttt{LEFT} o \texttt{RIGHT}. El estado \texttt{DETAINED} se utiliza para detener completamente el robot cuando así lo indique la Raspberry Pi.
 
 A continuación se presenta un pseudocódigo del flujo principal del programa:
 
+\vspace{0.5cm}
 
-
-\begin{lstlisting}[caption={Flujo principal de control en Arduino}]
-
+\begin{lstlisting}[caption={Flujo principal de control en Arduino}, style=pseudocodigo]
 inicializar_robot()
 
 while(true):

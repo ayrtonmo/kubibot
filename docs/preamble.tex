@@ -24,6 +24,7 @@
 \usepackage{siunitx}
 \usepackage{float}
 
+
 % Chapter/section formatting
 \usepackage{titlesec}
 \titleformat{\chapter}[block]
@@ -52,15 +53,62 @@
 
 % Para código
 \usepackage[T1]{fontenc}
-\usepackage[varqu]{zi4} 
+\usepackage[varqu]{zi4}
 \usepackage{listings}
 \usepackage{xcolor}
 
+% Colores personalizados para código
+\definecolor{codebg}{HTML}{F7F7F7}
+\definecolor{codeframe}{HTML}{CCCCCC}
+\definecolor{codekeyword}{HTML}{005CC5}
+\definecolor{codestring}{HTML}{008000}
+\definecolor{codecomment}{HTML}{6A737D}
+\definecolor{codelinenumbers}{HTML}{999999}
+
+% Estilo global de listings (pseudocódigo / código fuente)
 \lstset{
-    basicstyle=\ttfamily\small,
-    backgroundcolor=\color{gray!10},
-    frame=single,
-    keywordstyle=\color{blue}\bfseries,
-    stringstyle=\color{red},
-    commentstyle=\color{green!50!black}
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  frameround=tttt,
+  numbers=left,
+  numberstyle=\tiny\color{codelinenumbers},
+  stepnumber=1,
+  numbersep=8pt,
+  keywordstyle=\bfseries\color{codekeyword},
+  stringstyle=\color{codestring},
+  commentstyle=\itshape\color{codecomment},
+  showstringspaces=false,
+  tabsize=4,
+  breaklines=true,
+  breakatwhitespace=true,
+  columns=fullflexible,
+  keepspaces=true,
+  captionpos=b,
+  xleftmargin=1.5em,
+  framexleftmargin=1.5em,
+  framexrightmargin=0.5em,
+  framextopmargin=0.5em,
+  framexbottommargin=0.5em
 }
+
+% Lenguaje y estilo para pseudocódigo con palabras clave coloreadas
+\lstdefinelanguage{pseudocodigo}{%
+  morekeywords={while,if,else,elif,for,return,break,continue,case,switch,True,False,AND,OR,NOT},%
+  sensitive=false,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]
+}
+
+\lstdefinestyle{pseudocodigo}{%
+  language=pseudocodigo,
+  keywordstyle=\bfseries\color{codekeyword},
+  keywordstyle={[2]\bfseries\color{codekeyword}},
+  commentstyle=\itshape\color{codecomment},
+  stringstyle=\color{codestring}
+}
+
+% Nombre en español para los listados
+\renewcommand{\lstlistingname}{Listado}
