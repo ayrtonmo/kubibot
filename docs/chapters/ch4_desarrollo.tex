@@ -212,6 +212,8 @@ while(true):
             estado_robot = AVANZANDO
 \end{lstlisting}
 
+\newpage
+
 \section{Comunicacion}
 Como se establecio previamente en el analisis del problema, se decidio utilizar un Raspberry PI como el núcleo del modulo de comunicación.
 
@@ -220,6 +222,7 @@ Este en un principio se pensó para alojar localmente un modelo de lenguaje, ade
 \vspace{0.5cm}
 
 Todo el código desarrollado para este módulo fue escrito en Python, ya que en este lenguaje existe una amplia gama de librerías y prototipos ya hechos para el manejo de IA, audio y comunicación en red, lo que facilita enormemente el desarrollo.
+
 
 \subsection{Arquitectura inicial}
 
@@ -276,13 +279,23 @@ El flujo de funcionamiento apreciado en al figura \ref{fig:diag_fin} es el sigui
 
 El cliente, implementado en el script \texttt{client.py}, se ejecuta en el Raspberry Pi y es responsable de la interacción directa con el usuario. Su función principal es detectar la \textit{wake word}, grabar la voz del usuario, enviarla al servidor y reproducir el audio de respuesta.
 
-Para la detección de la palabra clave se utiliza la librería Porcupine, que permite reconocer localmente una \textit{wake word} predefinida sin necesidad de conexión a Internet. El cliente inicializa Porcupine con una clave de acceso (\texttt{ACCESS\_KEY}) y un modelo de palabra clave, y escucha de manera continua el micrófono. Cuando la salida del modelo indica que la palabra ha sido detectada, el sistema reproduce un sonido breve de inicio y pasa al modo de grabación.
+\vspace{0.5cm}
+
+Para la detección de la palabra clave se utiliza la librería \texttt{Porcupine}, que permite reconocer localmente una \textit{wake word} predefinida sin necesidad de conexión a Internet. El cliente inicializa \texttt{Porcupine} con una clave de acceso (\texttt{ACCESS\_KEY}) y un modelo de palabra clave, y escucha de manera continua el micrófono. Cuando la salida del modelo indica que la palabra ha sido detectada, el sistema reproduce un sonido breve de inicio y pasa al modo de grabación.
+
+\vspace{0.5cm}
 
 La grabación de la voz se realiza con la librería \texttt{pvrecorder}, que captura audio en forma de marcos (\textit{frames}) de muestras. Sobre este flujo se implementa un esquema simple de detección de actividad de voz (VAD), basado en un umbral de amplitud y en un contador de silencio. Mientras se detecta voz, el cliente envía cada frame codificado como audio PCM a través del evento \texttt{audio\_chunk} de Socket.IO. Cuando se detecta un periodo de silencio superior a un límite configurado, o cuando se alcanza una duración máxima, el cliente detiene la captura, reproduce un sonido de fin de grabación y emite el evento \texttt{end\_of\_audio}.
 
+\vspace{0.5cm}
+
 Durante todo este proceso, el cliente mantiene una conexión persistente con el servidor mediante Socket.IO, incluyendo el \texttt{API\_TOKEN} en las cabeceras para autenticación. Una vez que el servidor procesa la petición, envía de vuelta la respuesta textual y, principalmente, la respuesta en audio a través del evento \texttt{audio\_response}. El cliente guarda temporalmente este audio en un archivo y lo reproduce usando \texttt{aplay}, eliminando el archivo una vez terminado.
 
+\vspace{0.5cm}
+
 De esta forma, el Raspberry Pi actúa como una interfaz conversacional local, que gestiona la experiencia de usuario (wake word, sonidos de inicio y fin, reproducción de la voz sintética) mientras delega el procesamiento intensivo de IA al servidor remoto.
+
+\newpage
 
 \section{Comunicación Raspberry-Arduino}
 La comunicación entre el Raspberry PI y el Arduino consiste en enviar una señal desde el Raspberry PI al Arduino para activar o desactivar el movimiento del robot, dependiendo de si el robot está hablando o escuchando al usuario.
@@ -305,7 +318,7 @@ Para implementar la comunicación serial, se utilizó la librería \texttt{pyser
 \vspace{0.5cm}
 
 
-\begin{lstlisting}[caption={Recepción de comandos seriales en Arduino}]
+\begin{lstlisting}[caption={Recepción de comandos seriales en Arduino},style=pseudocodigo]
 
 comando_serial = leer_comando_serial()
 
@@ -325,7 +338,7 @@ switch(estado_robot):
 
 
 
-\begin{lstlisting}[caption={Envio de comandos seriales en Raspberry}]
+\begin{lstlisting}[caption={Envio de comandos seriales en Raspberry},style=pseudocodigo]
 if robot_escuchando || robot_hablando:
     enviar_comando_serial("S") // "S" para detener
 else:
@@ -335,12 +348,36 @@ else:
 
 En la implementación final, se definieron dos comandos principales enviados desde el Raspberry Pi al Arduino a través del puerto serie: \texttt{'S'} para detener el robot y \texttt{'R'} para reanudar el movimiento. El Arduino, mediante la clase \texttt{RaspberryPi}, lee continuamente el puerto serie y actualiza un estado interno de parada. Cuando el robot está hablando o escuchando (es decir, mientras se procesa una interacción de voz), el Raspberry Pi envía \texttt{'S'} para forzar el estado \texttt{DETAINED}, lo que detiene inmediatamente los motores. Una vez finalizada la respuesta de voz, se envía \texttt{'R'}, permitiendo al Arduino volver al estado \texttt{ADVANCING} y retomar la navegación autónoma.
 
+\newpage
 
 \section{Diseño}
-El diseño físico de Kubibot se abordó con el objetivo de lograr un prototipo compacto, ligero y visualmente amigable, que al mismo tiempo facilitara el acceso a los componentes internos para pruebas y mantenimiento. Para ello se optó por una carcasa cúbica impresa en 3D, donde cada módulo del sistema se ubica en una zona específica.
+El diseño físico de Kubibot se abordó con el objetivo de lograr un prototipo compacto, ligero y visualmente amigable, que al mismo tiempo facilitara el acceso a los componentes internos para pruebas y mantenimiento. Para ello se optó por una carcasa cúbica impresa en 3D. Antes del diseño final, se realizó el siguiente bosquejo inicial:
 
-En la base del cubo se alojan los cuatro motores DC junto con las ruedas, conformando el sistema de locomoción 4x4. Esta disposición simétrica mejora la tracción y la estabilidad del robot, especialmente en superficies con mayor fricción. En la parte trasera se ubica el portapila, el cual alimenta tanto a los motores como al Arduino.
+\vspace{0.5cm}
 
-Adentro se monta el Arduino Uno con el \textit{Motor Driver Shield L293D}, el Raspberry Pi (completar)
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Fig/boceto_diseno.png}
+    \caption{Boceto inicial hecho por Iván Mansilla}
+    \label{fig:boceto_diseno}
+\end{figure}
 
-Todo el diseño de la carcasa fue desarrollado y ajustado en conjunto con el apoyo de Nicolás Poblete, quien se encargó de la modelación 3D y la impresión de las piezas.
+\newpage
+
+Con esta idea en mente, se procedió a diseñar el modelo 3D de la carcasa con la ayuda de Nicolás Poblete, quien se encargó de la modelación y la impresión de las piezas. Este diseño fue hecho de tal forma que los componentes internos tuviesen el espacio necesario, además de sus piezas ser modulares y desmontables, o sea, que cada pieza pudiese ser removida individualmente para acceder a los componentes internos con facilidad. A continuación se muestran algunas imágenes del modelo 3D:
+
+\vspace{0.5cm}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.4\linewidth]{Fig/diseno_kubi_1.png}
+    \includegraphics[width=0.4\linewidth]{Fig/diseno_kubi_2.png}
+    \includegraphics[width=0.4\linewidth]{Fig/diseno_kubi_3.png}
+    \caption{Modelo 3D de la carcasa diseñado por Nicolás Poblete}
+    \label{fig:modelo_3d}
+\end{figure}
+
+Se puede apreciar como en el diseño se consideraron espacios específicos para cada componente, además de orificios para la ventilación, el acceso a puertos, chasis para los motores y un espacio para la fuente de poder. 
+
+
+
