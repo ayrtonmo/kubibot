@@ -2,15 +2,59 @@
 
 \section{Robótica móvil}
 
-\section{Inteligencia artificial}
+La robótica móvil es la disciplina encargada del estudio y desarrollo de robots que tienen la capacidad física de desplazarse en su entorno, a diferencia de los robots industriales que permanecen anclados a una base fija. El objetivo principal de estos sistemas es realizar tareas en espacios sin intervención humana constante.
 
-\section{Servidores y clientes}
+\subsection{Sistemas de Locomoción} Para moverse, los robots requieren un mecanismo físico que interactúe con el suelo. La elección de este mecanismo depende del tipo de terreno donde operará el robot:
+
+\begin{itemize} \item \textbf{Robots con ruedas:} Son los más populares debido a su simplicidad mecánica, bajo consumo de energía y facilidad de control. Son ideales para superficies lisas o pavimentadas. \item \textbf{Robots con patas:} Imitan la biología de los animales. Son muy útiles para evitar obstáculos y terrenos irregulares, aunque su construcción y programación son más complejas. \item \textbf{Robots con orugas:} Utilizan bandas continuas similares a las de un tanque. Ofrecen una excelente tracción en terrenos sueltos como arena o tierra, pero suelen ser más lentos y menos precisos al girar. \end{itemize}
+
+\subsection{Sensores y Autonomía} Para que un robot móvil sea `inteligente' o autónomo, necesita percibir el mundo que lo rodea. Esto se logra mediante sensores que actúan como los `sentidos' del robot:
+
+\begin{itemize} \item \textbf{Sensores internos:} Permiten al robot conocer su propio estado, como la velocidad de las ruedas o el nivel de batería. \item \textbf{Sensores externos:} Recopilan datos del entorno. Los más comunes incluyen cámaras para visión artificial, sensores ultrasónicos para detectar la distancia a objetos cercanos y evitar choques, y sistemas LiDAR para escanear habitaciones completas. \end{itemize}
+
+Gracias a esta información sensorial, el sistema de control (el "cerebro" del robot) puede tomar decisiones en tiempo real, como detenerse ante un obstáculo o corregir su rumbo hacia un destino.
+\vspace{0.5cm}
+
+\section{Inteligencia artificial}
+La inteligencia artificial (IA) es un campo de la informática que se centra en la creación de sistemas y programas capaces de realizar tareas que normalmente requieren inteligencia humana. Estas tareas incluyen el aprendizaje, el razonamiento, la percepción, la toma de decisiones y la comprensión del lenguaje natural. La IA puede clasificarse en dos categorías principales: IA débil, que está diseñada para realizar tareas específicas, e IA fuerte, que tiene capacidades cognitivas similares a las humanas.
+
+\subsection{Modelos de Lenguaje (LLM)} El `cerebro' detrás de un asistente moderno es lo que se conoce como un Gran Modelo de Lenguaje (LLM). Estos sistemas funcionan prediciendo palabras, y gracias a su entrenamiento masivo pueden entender una pregunta en lenguaje natural y construir una respuesta coherente palabra por palabra, manteniendo el contexto de una charla, lo que les da la apariencia de ser conversadores inteligentes.
+
+\newpage
 
 \section{Arduino UNO}
 El Arduino UNO es una placa de desarrollo basada en el microcontrolador ATmega328P, ampliamente utilizada en proyectos de electrónica y robótica debido a su facilidad de uso y versatilidad. Cuenta con 14 pines digitales de entrada/salida, 6 entradas analógicas, un cristal oscilador de 16 MHz, una conexión USB, un conector de alimentación y un botón de reinicio.
 
-El Arduino UNO permite a los usuarios programar y controlar dispositivos electrónicos mediante el entorno de desarrollo integrado (IDE) de Arduino, que utiliza un lenguaje de programación basado en C/C++.
+El Arduino UNO permite a los usuarios programar y controlar dispositivos electrónicos mediante el entorno de desarrollo integrado (IDE) de Arduino, que utiliza un lenguaje de programación prácticamente identico a C/C++.
+
+\vspace{0.5cm}
+
+A continuación se presenta un diagrama del Arduino UNO, destacando sus principales componentes y conexiones:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Fig/arduino_diagrama.png}
+    \caption{Diagrama del Arduino UNO}
+\end{figure}
+
 
 
 
 \section{Raspberry PI 5}
+El Raspberry Pi 5 es la última versión de las microcomputadoras Raspberry Pi, la cual está diseñada para ofrecer tanto rendimiento como versatibilidad. No debe ser confudida con un microcontrolador, ya que en realidad esta es una computadora completa, solo que en un formato muy compacto.
+
+El Raspberry Pi 5 cuenta con un procesador ARM Cortex-A76 de cuatro núcleos a 1.8 GHz, 4 GB o 8 GB de RAM LPDDR4X, conectividad Wi-Fi y Bluetooth integradas, puertos USB 3.0 y USB 2.0, un puerto Ethernet Gigabit, salida HDMI dual para soporte de pantallas 4K, y una ranura para tarjeta microSD para almacenamiento.
+
+\vspace{0.5cm}
+
+Este suele ser configurado con un sistema operativo basado en Linux, el más común siendo Raspberry Pi OS, aunque de igual forma puede correr otros sistemas operativos siempre y cuando sean compatibles con su arquitectura ARM. Para el acceso a ella, se puede utilizar un monitor, teclado y ratón conectados directamente, o bien acceder de forma remota mediante SSH o escritorio remoto.
+
+\vspace{0.5cm}
+
+A continuación se presenta una imagen del Raspberry Pi 5, destacando sus principales componentes y conexiones:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Fig/raspberry_diagrama.png}
+    \caption{Imagen del Raspberry Pi 5}
+\end{figure}
