@@ -1,4 +1,3 @@
-
 \chapter{Desarrollo}
 
 \section{Análisis previo}
@@ -6,32 +5,27 @@ El punto de partida de este proyecto fue el interés en explorar las aplicacione
 
 El primer concepto consistía en utilizar un hardware disponible en la institución: una cabeza robótica estática. La idea era dotar a esta cabeza de capacidades conversacionales, aprovechando su estructura existente para simular interacción humana (movimiento de ojos o boca).
 
-Sin embargo, tras un análisis preliminar, se descartó la idea, y se prefirió crear un hardware de cero, ya que entregaría mayor libertad de diseño e integración. Esto llevó entonces hacía un concepto nuevo: un prototipo de robot móvil y compacto. Esta nueva dirección se eligió por dos ventajas estratégicas:
+Sin embargo, tras un análisis preliminar, se descartó la idea y se prefirió crear un hardware desde cero, ya que entregaría mayor libertad de diseño e integración. Esto llevó entonces hacia un concepto nuevo: un prototipo de robot móvil y compacto. Esta nueva dirección se eligió por dos ventajas estratégicas:
 
-    \begin{enumerate}
-        \item \textbf{Simplicidad de integración:} Aunque la movilidad añade el desafío de crear un sistema de navegación, diseñar un chasis propio desde cero simplifica enormemente la integración y cohesión de los componentes que se quisieran utilizar, ya que no tienen que obligatoriamente adaptarse a un sistema pre existente.
+\begin{enumerate}
+    \item \textbf{Simplicidad de integración:} Aunque la movilidad añade el desafío de crear un sistema de navegación, diseñar un chasis propio desde cero simplifica enormemente la integración y cohesión de los componentes que se quisieran utilizar, ya que no tienen que adaptarse obligatoriamente a un sistema preexistente.
 
-        \item \textbf{Mayor Atractivo e Interacción:} Se determinó que un robot capaz de moverse por la habitación y reaccionar físicamente a su entorno sería percibido por el público como un dispositivo más dinámico y, en definitiva, más atractivo y cercano como "compañero", cumpliendo así el objetivo inicial del proyecto de una forma más efectiva.
-    \end{enumerate}
+    \item \textbf{Mayor atractivo e interacción:} Se determinó que un robot capaz de moverse por la habitación y reaccionar físicamente a su entorno sería percibido por el público como un dispositivo más dinámico y, en definitiva, más atractivo y cercano como \enquote{compañero}, cumpliendo así el objetivo inicial del proyecto de una forma más efectiva.
+\end{enumerate}
 
-    \subsection{Módulos del prototipo}
+\subsection{Módulos del prototipo}
+Una vez definida la idea general, fue fundamental realizar un análisis de los componentes necesarios para el funcionamiento del prototipo. Para un desarrollo en paralelo y modular, se dividió el robot en dos módulos principales e inicialmente independientes entre sí, con el objetivo de conectarlos una vez que cada uno estuviese lo suficientemente avanzado:
 
-    Una vez la idea general definida, fue fundamental realizar un análisis de los componentes necesarios para el funcionamiento del prototipo. Para un desarrollo en paralelo y modular, se dividió el robot en dos módulos principales e inicialmente independientes entre sí, con el objetivo de ser conectados una vez cada uno estuviese lo suficientemente avanzado:
+\begin{enumerate}
+    \item \textbf{Movimiento:} Este módulo englobaría toda la locomoción física del robot. Se compondría de un chasis estructural, un sistema de ruedas impulsadas por motores y un sensor ultrasónico para la detección de obstáculos. Para controlar el movimiento se escogió el microcontrolador \textbf{Arduino} Uno, debido a su simplicidad de programación y su disponibilidad en el departamento.
 
-    \begin{enumerate}
-        \item \textbf{Movimiento:} Este módulo englobaría toda la locomoción física del robot. Se compondría de un chasis estructural, un sistema de ruedas impulsadas por motores y un sensor ultrasónico para la detección de obstáculos. Para controlar el movimiento se escogió el microcontrolador Arduino Uno, debido a su simplicidad de programación y su disponibilidad en el departamento.
+    \item \textbf{Comunicación:} Módulo en donde residiría todo lo relacionado con la comunicación con el usuario. Se determinó inicialmente levantar localmente una LLM en una \textbf{Raspberry Pi} 5, debido a su diseño compacto y potencia. En ella además se conectarían los dispositivos de entrada y salida. Se determinó que la forma de comunicación más cercana y amigable sería a través de voz.
+\end{enumerate}
 
-        \item \textbf{Comunicacion:} Modulo en donde residiría todo lo relacionado con la comunicacion con el usuario. Se determinó inicialmente el levantar localmente una LLM en un Raspberry PI 5, debido a su diseño compacto y potencia. En ella además se conectarían los dispositivos de entrada y salida. Se determinó que la forma de comunicación más cercana y amigable sería a través de voz.
-    \end{enumerate}
+\subsection{Diseño}
+Una vez determinada la funcionalidad, se analizó la presentación visual del prototipo. Por las características de los componentes y los recursos limitados, se necesitaba una carcasa ligera y, a su vez, accesible. Se optó entonces por crear o buscar un modelo para imprimir en 3D, lo que implicó que el diseño debiese ser simple para evitar problemas con el filamento o de ensamblaje.
 
-    \subsection{Diseño}
-
-    Una vez la funcionalidad determinada, se analizó la presentación visual del prototipo. Por las características de los componentes y los recursos limitados, se necesitaba una carcasa ligera y a su misma vez accesible. Se optó entonces por crear o buscar un modelo para imprimir en 3D, lo que entonces implicó que el diseño además debiese ser simple para evitar problemas con el filamento o de ensamblaje.
-
-    Finalmente se optó por una carcasa completamente cúbica, ya que no solo resulta sumamente fácil de ensamblar, sino que además le da al robot una apariencia agradable. Este diseño entonces se bosquejó, para luego ser trabajado y adaptado en un modelo 3D por Nicolás Poblete, quien durante todo el transcurso del proyecto prestó apoyo en lo que es diseño e impresión del prototipo.
-
-
-
+Finalmente se optó por una carcasa completamente cúbica, ya que no solo resulta sumamente fácil de ensamblar, sino que además le da al robot una apariencia agradable. Este diseño se bosquejó para luego ser trabajado y adaptado en un modelo 3D por Nicolás Poblete, quien durante todo el transcurso del proyecto prestó apoyo en lo que es diseño e impresión del prototipo.
 
 \newpage
 \section{Movimiento}
@@ -40,21 +34,21 @@ El movimiento durante el desarrollo del proyecto fue uno de los aspectos más de
 
 \vspace{0.5cm}
 
-Como se mencionó anteriormente, este fue programado con el ambiente de Arduino IDE, utilizando un Arduino UNO como microcontrolador principal. El código fue escrito en C++, utilizando librerías estándar de arduino y un enfoque orientado a objeto para el control de cada componente. 
+Como se mencionó anteriormente, este fue programado con el entorno de \textbf{Arduino} IDE, utilizando un \textbf{Arduino} Uno como microcontrolador principal. El código fue escrito en C++, utilizando librerías estándar de \textbf{Arduino} y un enfoque orientado a objetos para el control de cada componente.
 
 \subsection{Prototipo inicial}
-Inicialmente se planificó un sistema de locomoción basado en un chasis con dos ruedas a motor, dos ruedas libres y un sensor ultrasónico para la detección de obstáculos, controlados por un Arduino Uno. El puente H utilizado para controlar los motores fue el L293D, componente que se encontraba disponible en el laboratorio; continuación se presenta el diagrama de este en la figura
+Inicialmente se planificó un sistema de locomoción basado en un chasis con dos ruedas a motor, dos ruedas libres y un sensor ultrasónico para la detección de obstáculos, controlados por un \textbf{Arduino} Uno. El puente H utilizado para controlar los motores fue el L293D, componente que se encontraba disponible en el laboratorio; a continuación se presenta el diagrama de este en la figura \ref{fig:diag_l293d}.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.7\linewidth]{Fig/L293D_diagrama.png}
     \caption{Puente H L293D}
     \label{fig:diag_l293d}
 \end{figure}
 
-Los motores DC seleccionados fueron de 6V y 255 RPM, alimentados por una batería externa de 9V para asegurar un suministro de energía estable. 
+Los motores DC seleccionados fueron de 6V y 255 RPM, alimentados por una batería externa de 9V para asegurar un suministro de energía estable.
 
-El sensor ultrasónico HC-SR04 se utilizó para medir la distancia a los obstáculos, enviando señales de ultrasonido y midiendo el tiempo que tarda en recibir el eco. Este sensor se conectó al Arduino, que procesaba las lecturas y cortaba el movimiento de los motores si se detectaba un obstáculo. A continuación se presenta el diagrama del sensor
+El sensor ultrasónico HC-SR04 se utilizó para medir la distancia a los obstáculos, enviando señales de ultrasonido y midiendo el tiempo que tarda en recibir el eco. Este sensor se conectó al \textbf{Arduino}, que procesaba las lecturas y cortaba el movimiento de los motores si se detectaba un obstáculo. A continuación se presenta el diagrama del sensor.
 
 \newpage
 
@@ -65,84 +59,81 @@ El sensor ultrasónico HC-SR04 se utilizó para medir la distancia a los obstác
     \label{fig:diag_hcsr04}
 \end{figure}
 
-Los problemas comenzaron a surgir durante las primeras pruebas. El primer problema surgió con el sensor ultrasónico, ya que las lecturas eran inconsistentes y a menudo incorrectas. Después de reemplazar el sensor y revisar las conexiones, se descubrió que el problema en realidad estaba en el código de arduino, que no estaba manejando bien los tiempos de espera y las interrupciones. Tras corregir el código, el sensor comenzó a funcionar correctamente.
+Los problemas comenzaron a surgir durante las primeras pruebas. El primero surgió con el sensor ultrasónico, ya que las lecturas eran inconsistentes y a menudo incorrectas. Después de reemplazar el sensor y revisar las conexiones, se descubrió que el problema en realidad estaba en el código de \textbf{Arduino}, que no estaba manejando bien los tiempos de espera y las interrupciones. Tras corregir el código, el sensor comenzó a funcionar correctamente.
 
 \vspace{0.5cm}
 
-El siguiente problema fue netamente de diseño, ya que no se consideró adecuadamente el cómo el prototipo giraría al detectar un obstáculo. Ya que el chasis ya se encontraba impreso y era complicado modificarlo para añadir un mecanismo con un servo, se decidió realizar el giro netamente deteniendo un motor y dejando el otro activo.
+El siguiente problema fue netamente de diseño, ya que no se consideró adecuadamente cómo el prototipo giraría al detectar un obstáculo. Como el chasis ya se encontraba impreso y era complicado modificarlo para añadir un mecanismo con un servo, se decidió realizar el giro deteniendo un motor y dejando el otro activo.
 
 \newpage
 
 \subsection{Segundo prototipo}
-
-Algo que no se consideró en el primer prototipo fue la decisión de camino que el robot tomaría al detectar un obstáculo. Es por esto que se decidió implementar al sistema de detección de obstaculos un servomotor analógico conectado al arduino, al que se encontraría ensamblado el sensor ultrasónico.
+Algo que no se consideró en el primer prototipo fue la decisión de camino que el robot tomaría al detectar un obstáculo. Por esto se decidió implementar en el sistema de detección de obstáculos un servomotor analógico conectado al \textbf{Arduino}, al cual se encontraría ensamblado el sensor ultrasónico.
 
 De esta forma, se ejecutaría el siguiente flujo:
 
 \vspace{0.5cm}
 
 \begin{lstlisting}[style=pseudocodigo, caption={Flujo de detección de obstáculos con servo}]
-    while(true):
-        if (distancia_obstaculo < umbral de seguridad):
-            1. Detener ambos motores.
-            2. Retroceder hasta una distancia segura.
-            3. Girar el servo a la izquierda y medir distancia.
-            4. Girar el servo a la derecha y medir distancia.
-            5. Comparar ambas distancias.
-            6. Girar en la direccion con mayor distancia libre.
-        else:
-            Continuar moviendose hacia adelante.
+while(true):
+    if (distancia_obstaculo < umbral de seguridad):
+        1. Detener ambos motores.
+        2. Retroceder hasta una distancia segura.
+        3. Girar el servo a la izquierda y medir distancia.
+        4. Girar el servo a la derecha y medir distancia.
+        5. Comparar ambas distancias.
+        6. Girar en la direccion con mayor distancia libre.
+    else:
+        Continuar moviendose hacia adelante.
 \end{lstlisting}
 
 \vspace{0.5cm}
 
 \subsection{Tercer prototipo}
+Al probar el giro y el movimiento se encontraron dos problemas graves:
+\begin{enumerate}
+    \item \textbf{Falta de potencia:} Se empezó a notar que el robot tenía dificultades para moverse, sobre todo en superficies con algo de fricción. Esto se debió a que la batería de 9V se estaba quedando sin carga, lo que resultaba en una potencia insuficiente.
 
-    Al probar el giro y el movimiento se encontraron dos problemas graves:
-    \begin{enumerate}
-        \item \textbf{Falta de potencia:} Se empezó a notar que el robot tenía dificultados para moverse, sobre todo en superficies con algo de fricción. Esto se debió a que la batería de 9V se estaba quedando sin carga, lo que resultaba en una potencia insuficiente.
+    \item \textbf{Giro ineficiente:} El sistema de giro implementado, donde se detenía un motor y se dejaba el otro activo, no funcionó como se esperaba. El robot prácticamente no giraba, tanto por la fricción del suelo como por la inercia ejercida por la rueda detenida.
+\end{enumerate}
 
-        \item \textbf{Giro ineficiente:} El sistema de giro implementado en donde se detenía un motor y se dejaba el otro activo no funcionó como se esperaba. El robot practicamente no giraba, tanto por la fricción del suelo como por la inercia ejercida por la rueda detenida.
-    \end{enumerate}
+Para solucionar el primer problema se decidió cambiar la fuente de alimentación a un portapilas de 6 pilas AA, entregando un total de 9V. Esto proporcionó no solo la potencia necesaria, sino también la posibilidad de cambiar las pilas fácilmente cuando se agoten.
 
-    Para solucionar el primer problema se decidió cambiar la fuente de alimentación a un portapila de 6 pilas AA, entregando un total de 9V. Esto proporcionó no solo la potencia necesaria, sino que además la posibilidad de cambiar las pilas fácilmente cuando se agotaran.
+\vspace{0.5cm}
 
-    \vspace{0.5cm}
+Para solucionar el segundo problema se tuvo que hacer un cambio importante en el circuito: para combatir la inercia y fricción con una potencia adecuada, se decidió añadir dos motores adicionales, convirtiendo el sistema de locomoción en uno 4x4. Esto implicó rediseñar el chasis para acomodar los nuevos motores y ruedas, lo que fue posible gracias a la impresión 3D.
 
-    Para solucionar el segundo problema se tuvo que hacer un cambio importante en el circuito, ya que para combatir la inercia y fricción con una potencia adecuada, se decidió añadir dos motores adicionales, así el sistema de locomoción convirtiéndose en uno 4x4. Esto implicó rediseñar el chasis para acomodar los nuevos motores y ruedas, lo que fue posible gracias a la impresión 3D.
+También se tuvo que cambiar el puente H L293D por uno que soportara mayor corriente, ya que al investigar se descubrió que con este habría riesgo de sobrecalentamiento si se utilizaban los 4 motores simultáneamente. El nuevo puente H utilizado fue el TB6612FNG, el cual además de soportar mayor corriente, se encontraba disponible en el laboratorio. A continuación se presenta el diagrama de conexión de este.
 
-    También se tuvo que cambiar el puente H L293D por uno que soportara mayor corriente, ya que investigando se descubrió que con este habría riesgo de sobrecalentamiento si se utilizaban los 4 motores simultaneamente. El nuevo puente H utilizado fue el TB6612FNG, el cual además de soportar mayor corriente, se encontraba disponible en el laboratorio. A continuación se presenta el diagrama de conexión de este
-
-    \begin{figure}[h]
-        \centering
-        \includegraphics[width=1\linewidth]{Fig/Motores_diagrama.png}
-        \caption{Conexión de motores al TB6612FNG}
-        \label{fig:diag_tb6612fng_motores}
-    \end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Fig/Motores_diagrama.png}
+    \caption{Conexión de motores al TB6612FNG}
+    \label{fig:diag_tb6612fng_motores}
+\end{figure}
 
 \newpage
 
 \subsection{Prototipo final}
 A pesar de la investigación realizada, el puente H TB6612FNG comenzó a sobrecalentarse de todas formas al utilizar los 4 motores simultáneamente, lo que generó preocupación por la seguridad del prototipo.
 
-Se tuvo que buscar una solución alternativa, y se optó por conseguir un \textit{shield} de motor para Arduino que fuese adecuado para el manejo de 4 motores DC. El \textit{shield} elegido fue el \textit{Motor Driver Shield L293D}, el cual contiene dos puentes H L293D (utilizado en el primer prototipo) integrados.
+Se tuvo que buscar una solución alternativa y se optó por conseguir un \textit{shield} de motor para \textbf{Arduino} que fuese adecuado para el manejo de 4 motores DC. El \textit{shield} elegido fue el \textit{Motor Driver Shield L293D}, el cual contiene dos puentes H L293D (utilizados en el primer prototipo) integrados.
 
-Este \textit{shield} resultó en un gran avance y beneficio para el prototipo, ya que no solo resolvió el problema de sobrecalentamiento, sino que además simplificó enormemente el cableado y el suministro de energía del circuito.
+Este \textit{shield} resultó en un gran avance para el prototipo, ya que no solo resolvió el problema de sobrecalentamiento, sino que además simplificó enormemente el cableado y el suministro de energía del circuito.
 
 \vspace{0.5cm}
 
-El shield se conecta directamente al Arduino, y cuenta con terminales tanto para los motores, como para el servo y el sensor ultrasónico, además cuanta con una entrada para una fuente de alimentación externa, que alimenta tanto a los motores como al Arduino y los demás componentes. Entonces, fue posible alimentar todo el sistema con una sola fuente de alimentación y remover uno de los portapilas, además de eliminar el protoboard utilizado para las conexiones, ganando espacio y quitando peso. A continuación se presenta el diagrama de conexión del shield:
+El \textit{shield} se conecta directamente al \textbf{Arduino} y cuenta con terminales tanto para los motores como para el servo y el sensor ultrasónico; además, cuenta con una entrada para una fuente de alimentación externa, que alimenta tanto a los motores como al \textbf{Arduino} y los demás componentes. Así, fue posible alimentar todo el sistema con una sola fuente de alimentación y remover uno de los portapilas, además de eliminar el protoboard utilizado para las conexiones, ganando espacio y reduciendo peso. A continuación se presenta el diagrama de conexión del \textit{shield}:
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.6\linewidth]{Fig/esquema_motor.pdf}
-    \caption{Conexiónes del motor driver shield L293D}
+    \caption{Conexiones del motor driver shield L293D}
     \label{fig:diag_shield}
 \end{figure}
 
 \subsection{Código}
-
-El código final se estructuró en torno a dos clases: \texttt{ArduinoRobot} y \texttt{RaspberryPi}. La primera se encarga de abstraer el control de los cuatro motores, el sensor ultrasónico y el servomotor; la segunda modela el estado de la comunicación con la Raspberry Pi mediante comandos seriales, lo que se detallará más adelante.
+El código final se estructuró en torno a dos clases: \texttt{ArduinoRobot} y \texttt{RaspberryPi}. La primera se encarga de abstraer el control de los cuatro motores, el sensor ultrasónico y el servomotor; la segunda modela el estado de la comunicación con la \textbf{Raspberry Pi} mediante comandos seriales, lo que se detallará más adelante.
 
 \begin{figure}[h]
     \centering
@@ -150,7 +141,6 @@ El código final se estructuró en torno a dos clases: \texttt{ArduinoRobot} y \
     \caption{Diagrama de clases del módulo de movimiento}
     \label{fig:diag_clases_mov}
 \end{figure}
-
 
 \vspace{0.5cm}
 
@@ -162,17 +152,17 @@ El sensor ultrasónico HC-SR04 se gestiona mediante un \textit{struct} llamado \
 
 \vspace{0.5cm}
 
-El servomotor es representado a través del \textit{struct} \texttt{servoMotor}, y se controla con la librería estándar de Arduino \texttt{Servo}. El método \texttt{setServoAngle()} es el responsable de rotar el servo a un ángulo específico.
+El servomotor es representado a través del \textit{struct} \texttt{servoMotor}, y se controla con la librería estándar \texttt{ArduinoServo}. El método \texttt{setServoAngle()} es el responsable de rotar el servo a un ángulo específico.
 
 \vspace{1cm}
 
-La lógica de navegación se implementó con estados, \texttt{ADVANCING}, \texttt{REVERSING}, \texttt{TURNING} y \texttt{DETAINED}. En \texttt{ADVANCING}, el robot avanza recto mientras la distancia al obstáculo sea mayor que un umbral de seguridad. Si se detecta un obstáculo, se pasa a \texttt{REVERSING}, donde el robot retrocede durante un tiempo determinado hasta quedar a una distancia segura. Luego, en \texttt{TURNING}, el robot gira sobre su propio eje durante un tiempo fijo en la dirección elegida por el método \texttt{chooseTurnDirection()}, que compara las distancias medidas cuando el servo mira hacia la izquierda y hacia la derecha y retorna \texttt{LEFT} o \texttt{RIGHT}. El estado \texttt{DETAINED} se utiliza para detener completamente el robot cuando así lo indique la Raspberry Pi.
+La lógica de navegación se implementó con estados: \texttt{ADVANCING}, \texttt{REVERSING}, \texttt{TURNING} y \texttt{DETAINED}. En \texttt{ADVANCING}, el robot avanza recto mientras la distancia al obstáculo sea mayor que un umbral de seguridad. Si se detecta un obstáculo, se pasa a \texttt{REVERSING}, donde el robot retrocede durante un tiempo determinado hasta quedar a una distancia segura. Luego, en \texttt{TURNING}, el robot gira sobre su propio eje durante un tiempo fijo en la dirección elegida por el método \texttt{chooseTurnDirection()}, que compara las distancias medidas cuando el servo mira hacia la izquierda y hacia la derecha y retorna \texttt{LEFT} o \texttt{RIGHT}. El estado \texttt{DETAINED} se utiliza para detener completamente el robot cuando así lo indique la \textbf{Raspberry Pi}.
 
 A continuación se presenta un pseudocódigo del flujo principal del programa:
 
 \vspace{0.5cm}
 
-\begin{lstlisting}[caption={Flujo principal de control en Arduino}, style=pseudocodigo]
+\begin{lstlisting}[caption={Flujo principal de control en \textbf{Arduino}}, style=pseudocodigo]
 inicializar_robot()
 
 while(true):
@@ -214,78 +204,68 @@ while(true):
 
 \newpage
 
-\section{Comunicacion}
-Como se establecio previamente en el analisis del problema, se decidio utilizar un Raspberry PI como el núcleo del modulo de comunicación.
+\section{Comunicación}
+Como se estableció previamente en el análisis del problema, se decidió utilizar una \textbf{Raspberry Pi} como el núcleo del módulo de comunicación.
 
-Este en un principio se pensó para alojar localmente un modelo de lenguaje, además de manejar la entrada y salida de audio y todo el postprocesamiento. Sin embargo, tras las primeras pruebas, varios problemas fueron encontrados y la arquitectura del sistema tuvo que ser replanteada.
+En un principio, se pensó para alojar localmente un modelo de lenguaje, además de manejar la entrada y salida de audio y todo el posprocesamiento. Sin embargo, tras las primeras pruebas, se encontraron varios problemas y la arquitectura del sistema tuvo que replantearse.
 
 \vspace{0.5cm}
 
 Todo el código desarrollado para este módulo fue escrito en Python, ya que en este lenguaje existe una amplia gama de librerías y prototipos ya hechos para el manejo de IA, audio y comunicación en red, lo que facilita enormemente el desarrollo.
 
-
 \subsection{Arquitectura inicial}
+Para el modelo de lenguaje, se optó por utilizar un LLM alojado localmente, debido tanto a la limitación de recursos económicos para utilizar una \textbf{API} comercial, como a la intención de realizar un sistema local donde no se exponga la información del cliente. Se seleccionó la herramienta \textit{Ollama}, que permite realizar esto.
 
-Para el modelo de lenguaje, se optó utilizar un LLM localmente alojado, debido tanto a la limitación de recursos económicos para utilizar una API comercial, como a la intención de explorar el uso de modelos de lenguaje abiertos. Se seleccionó la herramienta \textit{Ollama}, que permite realizar esto.
-
-Sin embargo, al intentar utilizar diversos modelos, se descubrió que el Raspberry PI 5 no contaba con la potencia suficiente para ejecutar ninguno de ellos de manera fluida. Incluso los modelos más livianos presentaban tiempos de respuesta inaceptables o provocaban que el sistema se congelara, lo que supuso un obstáculo significativo para el desarrollo del proyecto.
-
+Sin embargo, al intentar utilizar diversos modelos, se descubrió que la \textbf{Raspberry Pi} 5 no contaba con la potencia suficiente para ejecutar ninguno de ellos de manera fluida. Incluso los modelos más livianos presentaban tiempos de respuesta inaceptables o provocaban que el sistema se congelara, lo que supuso un obstáculo significativo para el desarrollo del proyecto.
 
 \vspace{0.5cm}
 
-Después de considerar diversas opciones, se decidió cambiar la arquitectura del sistema para utilizar el Raspberry PI no como host del modelo del lenguaje, sino como un intermediario entre el usuario y un servidor externo que alojaría el modelo. De esta forma, el Raspberry PI se encargaría de manejar la entrada y salida de audio, mientras que el procesamiento intensivo requerido por el modelo de lenguaje se delegaría a una máquina más potente.
+Después de considerar diversas opciones, se decidió cambiar la arquitectura del sistema para utilizar la \textbf{Raspberry Pi} no como host del modelo de lenguaje, sino como un intermediario entre el usuario y un servidor externo que alojaría el modelo. De esta forma, la \textbf{Raspberry Pi} se encargaría de manejar la entrada y salida de audio, mientras que el procesamiento intensivo requerido por el modelo de lenguaje se delegaría a una máquina más potente.
 
 \newpage
 
-\subsection{Primer Prototipo funcional}
-El sistema de comunicación se diseñó adaptando una arquitectura cliente-servidor\footnote{Modelo de aplicación que distribuye las tareas entre los proveedores de recursos o servicios y solicitantes de servicios. \cite{ibm_clientserver}}. El Raspberry Pi actua como cliente, mientras que una maquina externa con mayor capacidad de procesamiento aloja el modelo de lenguaje y actua como servidor. Esta separación permite que el Raspberry Pi maneje las tareas de entrada y salida de audio, mientras que el servidor se encarga del procesamiento intensivo requerido por el modelo de lenguaje.
-
+\subsection{Primer prototipo funcional}
+El sistema de comunicación se diseñó adaptando una arquitectura cliente-servidor\footnote{Modelo de aplicación que distribuye las tareas entre los proveedores de recursos o servicios y solicitantes de servicios. \cite{ibm_clientserver}}. La \textbf{Raspberry Pi} actúa como cliente, mientras que una máquina externa con mayor capacidad de procesamiento aloja el modelo de lenguaje y actúa como servidor. Esta separación permite que la \textbf{Raspberry Pi} maneje las tareas de entrada y salida de audio, mientras que el servidor se encarga del procesamiento intensivo requerido por el modelo de lenguaje.
 
 En la figura \ref{fig:diag_com} se muestra un diagrama de funcionamiento entre los componentes principales del sistema de comunicación.
 
-\texttt{client.py} es el script principal que corre en el Raaspberry PI. Este se encarga de detectar constantemente si el usuario ha emitido una entrada de voz especifica o Wake Word (en este caso "Hey Bot"). Al detectar esta entrada, el script graba la voz del usuario durante un periodo de  tiempo y la envía al servidor a través de una solicitud HTTP \texttt{POST}.
+\texttt{raspberry.py} es el script principal que corre en la \textbf{Raspberry Pi}. Este se encarga de detectar constantemente si el usuario ha emitido una entrada de voz específica o \textbf{wake word} (en este caso, \enquote{Hey Bot}). Al detectar esta entrada, el script graba la voz del usuario durante un periodo de tiempo y la envía al servidor a través de una solicitud HTTP \texttt{POST}.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{Fig/diagrama_api.pdf}
-    \caption{Diagrama de comunicacion Servidor-Cliente}
+    \caption{Diagrama de comunicación servidor-cliente}
     \label{fig:diag_com}
 \end{figure}
 
 \newpage
 
 \subsection{Arquitectura final}
+Finalmente, el servidor se implementó utilizando \texttt{Flask}\cite{flask_doc} junto con \texttt{Flask-SocketIO}\cite{flask_socketio_doc}, permitiendo combinar una \textbf{API} web ligera con comunicación en tiempo real mediante WebSockets. El script principal \texttt{server\_api.py} define los eventos que gestionan la recepción y el envío de audio entre el cliente (\textbf{Raspberry Pi}) y el servidor. Además de lo anterior, el servidor permite manejar más de un cliente en caso de que sea necesario.
 
+\vspace{0.5cm}
 
-Finalmente, el servidor se implementó utilizando\texttt{Flask}\cite{flask_doc} junto con \texttt{Flask-SocketIO}\cite{flask_socketio_doc}, permitiendo combinar una API web ligera con comunicación en tiempo real mediante WebSockets. El script principal \texttt{server\_api.py} define los eventos que gestionan la recepción y el envío de audio entre el cliente (Raspberry Pi) y el servidor. En adicion a lo anterior, el servidor permite manejar mas de un cliente en caso de que sea necesario.
+Para la seguridad básica del sistema, cada cliente debe enviar un \textit{token} de autenticación en la cabecera \texttt{Auth}. El servidor valida este valor contra una variable de entorno; si el token es incorrecto, la conexión se rechaza. En caso contrario, se crea un identificador de sesión para el cliente conectado y se procede con el flujo de trabajo.
 
-Para la seguridad básica del sistema, cada cliente debe enviar un \textit{token} de autenticación en la cabecera \texttt{Auth}. El servidor valida este valor contra una variable de entorno, si el token es incorrecto, la conexión se rechaza. En caso contrario, se crea un identificador de sesión para el cliente conectado y se procede con el flujo de trabajo.
+\vspace{0.5cm}
 
-El flujo de funcionamiento apreciado en al figura \ref{fig:diag_fin} es el siguiente: al recibir la \textbf{wake word}, el cliente comienza a grabar la voz del usuario, enviando fragmentos de audio al servidor mediante un evento especifico. Finalizada la grabacion se procesa el audio para obtener la transcripcion del mensaje mediante whisper. Posteriormente el texto resultante se procesa mediante Piper para obtener la respuesta en audio, la cual es enviada junto al texto al cliente para su reproduccion.
-
-
+El flujo de funcionamiento apreciado en la figura \ref{fig:diag_fin} es el siguiente: al recibir la \textbf{wake word}, el cliente comienza a grabar la voz del usuario, enviando fragmentos de audio al servidor mediante un evento específico. Finalizada la grabación, se procesa el audio para obtener la transcripción del mensaje mediante Whisper. Posteriormente, el texto resultante se procesa mediante Piper para obtener la respuesta en audio, la cual es enviada junto al texto al cliente para su reproducción.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{Fig/diagrama_fin.pdf}
-    \caption{Diagrama de comunicacion final Servidor-Cliente}
+    \caption{Diagrama de comunicación final servidor-cliente}
     \label{fig:diag_fin}
 \end{figure}
 
 \newpage
 
-
 \subsection{Implementación del cliente en Raspberry Pi}
-
-El cliente, implementado en el script \texttt{client.py}, se ejecuta en el Raspberry Pi y es responsable de la interacción directa con el usuario. Su función principal es detectar la \textit{wake word}, grabar la voz del usuario, enviarla al servidor y reproducir el audio de respuesta.
-
-\vspace{0.5cm}
-
-Para la detección de la palabra clave se utiliza la librería \texttt{Porcupine}, que permite reconocer localmente una \textit{wake word} predefinida sin necesidad de conexión a Internet. El cliente inicializa \texttt{Porcupine} con una clave de acceso (\texttt{ACCESS\_KEY}) y un modelo de palabra clave, y escucha de manera continua el micrófono. Cuando la salida del modelo indica que la palabra ha sido detectada, el sistema reproduce un sonido breve de inicio y pasa al modo de grabación.
+El cliente, implementado en el script \texttt{raspberry.py}, se ejecuta en la \textbf{Raspberry Pi} y es responsable de la interacción directa con el usuario. Su función principal es detectar la \textbf{wake word} (en este caso, \enquote{\textbf{Hey Bot}}), grabar la voz del usuario, enviarla al servidor y reproducir el audio de respuesta. Esto se logró mediante la implementación de la librería y herramienta \texttt{Porcupine}, especializada en la creación de modelos ligeros para la detección de palabras clave. El cliente inicializa \texttt{Porcupine} con una clave de acceso y un modelo de palabra clave, y escucha de manera continua el micrófono. Cuando la salida del modelo indica que la palabra ha sido detectada, el sistema reproduce un sonido breve de inicio y pasa al modo de grabación.
 
 \vspace{0.5cm}
 
-La grabación de la voz se realiza con la librería \texttt{pvrecorder}, que captura audio en forma de marcos (\textit{frames}) de muestras. Sobre este flujo se implementa un esquema simple de detección de actividad de voz (VAD), basado en un umbral de amplitud y en un contador de silencio. Mientras se detecta voz, el cliente envía cada frame codificado como audio PCM a través del evento \texttt{audio\_chunk} de Socket.IO. Cuando se detecta un periodo de silencio superior a un límite configurado, o cuando se alcanza una duración máxima, el cliente detiene la captura, reproduce un sonido de fin de grabación y emite el evento \texttt{end\_of\_audio}.
+La grabación de la voz se realiza con la librería \texttt{pvrecorder}, que captura audio en forma de marcos (\textit{frames}) de muestras. Sobre este flujo se implementa un esquema simple de detección de actividad de voz (VAD), basado en un umbral de amplitud y en un contador de silencio. Mientras se detecta voz, el cliente envía cada \textit{frame} codificado como audio PCM\footnote{Formato de audio digital sin compresión donde la señal se representa como una secuencia de muestras cuantizadas.} a través del evento \texttt{audio\_chunk} de Socket.IO. Cuando se detecta un periodo de silencio superior a un límite configurado, o cuando se alcanza una duración máxima, el cliente detiene la captura, reproduce un sonido de fin de grabación y emite el evento \texttt{end\_of\_audio}.
 
 \vspace{0.5cm}
 
@@ -293,41 +273,39 @@ Durante todo este proceso, el cliente mantiene una conexión persistente con el 
 
 \vspace{0.5cm}
 
-De esta forma, el Raspberry Pi actúa como una interfaz conversacional local, que gestiona la experiencia de usuario (wake word, sonidos de inicio y fin, reproducción de la voz sintética) mientras delega el procesamiento intensivo de IA al servidor remoto.
+De esta forma, la \textbf{Raspberry Pi} actúa como una interfaz conversacional local, que gestiona la experiencia de usuario (\textbf{wake word}, sonidos de inicio y fin, reproducción de la voz sintética) mientras delega el procesamiento intensivo de IA al servidor remoto.
 
 \newpage
 
 \section{Comunicación Raspberry-Arduino}
-La comunicación entre el Raspberry PI y el Arduino consiste en enviar una señal desde el Raspberry PI al Arduino para activar o desactivar el movimiento del robot, dependiendo de si el robot está hablando o escuchando al usuario.
+La comunicación entre la \textbf{Raspberry Pi} y el \textbf{Arduino} consiste en enviar una señal desde la \textbf{Raspberry Pi} al \textbf{Arduino} para activar o desactivar el movimiento del robot, dependiendo de si el robot está hablando o escuchando al usuario.
 
 \vspace{0.5cm}
 
-El principal obstáculo para lograr esto radica principalmente en la diferencia de voltajes entre ambos dispositivos. EL Raspberry PI opera a 3.3V en sus pines GPIO, mientras que el Arduino funciona a 5V. Esta diferencia puede causar daños permanentes en el Raspberry PI si se conecta directamente un pin de salida del Arduino a un pin de entrada del Raspberry. Para resolver esto se consideraron dos opciones principales:
+El principal obstáculo para lograr esto radica en la diferencia de voltajes entre ambos dispositivos. La \textbf{Raspberry Pi} opera a 3.3V en sus pines GPIO, mientras que el \textbf{Arduino} funciona a 5V. Esta diferencia puede causar daños permanentes en la \textbf{Raspberry Pi} si se conecta directamente un pin de salida del \textbf{Arduino} a un pin de entrada de la Raspberry Pi. Para resolver esto se consideraron dos opciones principales:
 \begin{itemize}
-    \item \textbf{Circuito con relay:} Utilizar un relay para aislar eléctricamente ambos dispositivos. El Arduino podría activar el relay para enviar una señal al Raspberry PI sin que haya una conexión directa entre los pines de ambos dispositivos.
+    \item \textbf{Circuito con relé:} Utilizar un relé para aislar eléctricamente ambos dispositivos. El \textbf{Arduino} podría activar el relé para enviar una señal a la \textbf{Raspberry Pi} sin que haya una conexión directa entre los pines de ambos dispositivos.
 
-    \item \textbf{Cable USB}: Utilizar la comunicación serial a través de un cable USB. El Arduino puede enviar datos al Raspberry PI a través de la conexión USB, y el Raspberry PI puede interpretar estos datos para controlar el movimiento del robot.
+    \item \textbf{Cable USB:} Utilizar la comunicación serial a través de un cable USB. El \textbf{Arduino} puede enviar datos a la \textbf{Raspberry Pi} a través de la conexión USB, y la \textbf{Raspberry Pi} puede interpretar estos datos para controlar el movimiento del robot.
 \end{itemize}
 
-Después de evaluar ambas opciones, más que nada por un tema de diseño se optó en primera instancia por el uso de un relay. Sin embargo, tras probar el circuito, no se logró una comunicación estable entre ambos dispositivos. Es por esto, que al final se optó por la comunicación serial a través de un cable USB, que además de ser más simple de implementar, resultó en una comunicación mucho más estable y confiable.
+Después de evaluar ambas opciones (más que nada por un tema de diseño), se optó en primera instancia por el uso de un relé. Sin embargo, tras probar el circuito, no se logró una comunicación estable entre ambos dispositivos. Por esto, finalmente se optó por la comunicación serial a través de un cable USB, que además de ser más simple de implementar, resultó en una comunicación mucho más estable.
 
 \vspace{0.5cm}
 
-Para implementar la comunicación serial, se utilizó la librería \texttt{pyserial} en el Raspberry PI para enviar comandos al Arduino. El Arduino, por su parte, fue programado para escuchar estos comandos y activar o desactivar el movimiento del robot en consecuencia. A continuación se presenta un pseudocódigo del flujo de comunicación:
+Para implementar la comunicación serial, se utilizó la librería \texttt{pyserial} en la \textbf{Raspberry Pi} para enviar comandos al \textbf{Arduino}. El \textbf{Arduino}, por su parte, fue programado para escuchar estos comandos y activar o desactivar el movimiento del robot en consecuencia. A continuación se presenta un pseudocódigo del flujo de comunicación:
 
-\vspace{0.5cm}
+\newpage
 
+\begin{lstlisting}[caption={Recepción de comandos seriales en \textbf{Arduino}},style=pseudocodigo]
+comandoSerial = leer_comando_serial()
 
-\begin{lstlisting}[caption={Recepción de comandos seriales en Arduino},style=pseudocodigo]
-
-comando_serial = leer_comando_serial()
-
-if comando_serial == "S":
-    cambiar_estado_robot("DETENIDO")    
-elif comando_serial == "R" && estado_robot == "DETENIDO":
+if comandoSerial == "S":
+    cambiar_estado_robot("DETENIDO")
+elif comandoSerial == "R" && estadoRobot == "DETENIDO":
     cambiar_estado_robot("MOVIENDOSE")
 
-switch(estado_robot):
+switch(estadoRobot):
     case "MOVIENDOSE":
         mover_adelante()
     case "DETENIDO":
@@ -336,17 +314,18 @@ switch(estado_robot):
         ejecutar_giro()
 \end{lstlisting}
 
-
-
-\begin{lstlisting}[caption={Envio de comandos seriales en Raspberry},style=pseudocodigo]
+\begin{lstlisting}[caption={Envío de comandos seriales en Raspberry},style=pseudocodigo]
 if robot_escuchando || robot_hablando:
     enviar_comando_serial("S") // "S" para detener
-else:
+    esperar_handshake() // Esperar confirmacion de detencion por parte del Arduino, en este caso una "K"
+else if (tiempoPasado > tiempoEsperaDespuesDeHablar):
     enviar_comando_serial("R") // "R" para reanudar
-
 \end{lstlisting}
 
-En la implementación final, se definieron dos comandos principales enviados desde el Raspberry Pi al Arduino a través del puerto serie: \texttt{'S'} para detener el robot y \texttt{'R'} para reanudar el movimiento. El Arduino, mediante la clase \texttt{RaspberryPi}, lee continuamente el puerto serie y actualiza un estado interno de parada. Cuando el robot está hablando o escuchando (es decir, mientras se procesa una interacción de voz), el Raspberry Pi envía \texttt{'S'} para forzar el estado \texttt{DETAINED}, lo que detiene inmediatamente los motores. Una vez finalizada la respuesta de voz, se envía \texttt{'R'}, permitiendo al Arduino volver al estado \texttt{ADVANCING} y retomar la navegación autónoma.
+En la implementación final, se definieron dos comandos principales enviados desde la \textbf{Raspberry Pi} al \textbf{Arduino} a través del puerto serie: \texttt{S} para detener el robot y \texttt{R} para reanudar el movimiento. El \textbf{Arduino}, mediante la clase \texttt{RaspberryPi}, lee continuamente el puerto serie y actualiza un estado interno de parada. Cuando el robot está hablando o escuchando (es decir, mientras se procesa una interacción de voz), la \textbf{Raspberry Pi} envía \texttt{S} para forzar el estado \texttt{DETAINED}, lo que detiene inmediatamente los motores. Para asegurar que la conexión sea exitosa, se envía una señal de confirmación desde el \textbf{Arduino}; esta señal es \texttt{K}. Una vez finalizada la respuesta de voz, se envía \texttt{R}, permitiendo al \textbf{Arduino} volver al estado \texttt{ADVANCING} y retomar la navegación autónoma.
+
+\subsection{Alimentación Raspberry}
+Un problema adicional que surgió durante la implementación de la comunicación fue la alimentación de la \textbf{Raspberry Pi}. Inicialmente se intentó alimentar la \textbf{Raspberry Pi} directamente desde un \textit{power bank} de 3A/5V conectado al puerto USB. Sin embargo, se descubrió que el \textit{power bank} no suministraba suficiente corriente, lo que provocaba que la \textbf{Raspberry Pi} se reiniciara constantemente; por esto, como se observó en la sección anterior, el sistema quedó tan dependiente del servidor.
 
 \newpage
 
@@ -358,13 +337,13 @@ El diseño físico de Kubibot se abordó con el objetivo de lograr un prototipo 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{Fig/boceto_diseno.png}
-    \caption{Boceto inicial hecho por Iván Mansilla}
+    \caption{Boceto inicial ilustrado por Iván Mansilla}
     \label{fig:boceto_diseno}
 \end{figure}
 
 \newpage
 
-Con esta idea en mente, se procedió a diseñar el modelo 3D de la carcasa con la ayuda de Nicolás Poblete, quien se encargó de la modelación y la impresión de las piezas. Este diseño fue hecho de tal forma que los componentes internos tuviesen el espacio necesario, además de sus piezas ser modulares y desmontables, o sea, que cada pieza pudiese ser removida individualmente para acceder a los componentes internos con facilidad. A continuación se muestran algunas imágenes del modelo 3D:
+Con esta idea en mente, se procedió a diseñar el modelo 3D de la carcasa con la ayuda de Nicolás Poblete \cite{NicolasPobIg}, quien se encargó de la modelación y la impresión de las piezas. Este diseño fue realizado de tal forma que los componentes internos tuviesen el espacio necesario, además de que sus piezas fuesen modulares y desmontables; es decir, que cada pieza pudiese ser removida individualmente para acceder a los componentes internos con facilidad. A continuación se muestran algunas imágenes del modelo 3D:
 
 \vspace{0.5cm}
 
@@ -377,7 +356,18 @@ Con esta idea en mente, se procedió a diseñar el modelo 3D de la carcasa con l
     \label{fig:modelo_3d}
 \end{figure}
 
-Se puede apreciar como en el diseño se consideraron espacios específicos para cada componente, además de orificios para la ventilación, el acceso a puertos, chasis para los motores y un espacio para la fuente de poder. 
+Se puede apreciar cómo en el diseño se consideraron espacios específicos para cada componente, además de orificios para la ventilación, el acceso a puertos, el chasis para los motores y un espacio para la fuente de poder.
 
+\newpage
 
+\subsection{Skid steering}
+En cuanto al diseño del chasis, se optó por un sistema de \textit{skid steering}, que consiste en utilizar ruedas fijas y controlar el giro del robot variando la velocidad de las ruedas en cada lado, similar al sistema que utilizan las máquinas de carga convencionales. Esto permite giros sobre el mismo eje y una mayor estabilidad en superficies irregulares. Este sistema fue elegido para no depender de mecanismos adicionales como un servo para el giro, lo que simplificó el diseño y redujo el peso del prototipo. A continuación se presenta un diagrama ilustrativo del sistema\cite{Shuang2007SkidSI} de \textit{skid steering} utilizado:
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\linewidth]{Fig/skid_steering.png}
+    \caption{Diagrama ilustrativo del sistema de \textit{skid steering}}
+    \label{fig:skid_steering}
+\end{figure}
+
+Este diseño permitió un control preciso del movimiento del robot, soportando el peso de los componentes internos gracias a sus cuatro ruedas motrices y facilitando la navegación en el entorno doméstico para el cual fue diseñado Kubibot.
